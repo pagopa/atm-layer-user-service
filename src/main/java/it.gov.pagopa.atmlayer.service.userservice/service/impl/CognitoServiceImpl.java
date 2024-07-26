@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.configuration.AwsClientConf;
 import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
+import it.gov.pagopa.atmlayer.service.userservice.service.CognitoService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 @ApplicationScoped
 @Slf4j
-public class CognitoService {
+public class CognitoServiceImpl implements CognitoService {
     @Inject
     AwsClientConf awsClientConf;
 
@@ -23,6 +24,7 @@ public class CognitoService {
     @ConfigProperty(name = "cognito.user-pool.id")
     String userPoolId;
 
+    @Override
     public Uni<ClientCredentialsDTO> getClientCredentials(String clientId) {
         return Uni.createFrom().item(() -> {
             DescribeUserPoolClientRequest request = DescribeUserPoolClientRequest.builder()
@@ -50,6 +52,7 @@ public class CognitoService {
         });
     }
 
+    @Override
     public Uni<ClientCredentialsDTO> generateClient(String clientName) {
         return Uni.createFrom().item(() -> {
             CreateUserPoolClientRequest request = CreateUserPoolClientRequest.builder()
@@ -78,6 +81,7 @@ public class CognitoService {
         });
     }
 
+    @Override
     public Uni<Void> deleteClient(String clientId) {
         return Uni.createFrom().item(() -> {
                 DeleteUserPoolClientRequest request = DeleteUserPoolClientRequest.builder()

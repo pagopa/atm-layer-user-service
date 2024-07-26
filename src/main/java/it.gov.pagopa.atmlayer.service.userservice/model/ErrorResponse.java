@@ -27,6 +27,6 @@ public class ErrorResponse {
     @Schema(example = "An unexpected error has occurred. Please contact support.", maxLength = 1000)
     private String message;
 
-    @Schema(example = "ATML_MIL_AUTH-500", maxLength = 255)
+    @Schema(example = "ATML_USER_SERVICE-500", maxLength = 255)
     private String errorCode;
 }

@@ -4,6 +4,7 @@ import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
+import it.gov.pagopa.atmlayer.service.userservice.service.ApiKeyService;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -21,14 +22,14 @@ import static it.gov.pagopa.atmlayer.service.userservice.enums.UsagePlanPatchOpe
 
 @ApplicationScoped
 @Slf4j
-public class ApiKeyService {
+public class ApiKeyServiceImpl implements ApiKeyService {
     private final ApiGatewayClient apiGatewayClient;
     @ConfigProperty(name = "api-gateway.id")
     String apiGatewayId;
     @ConfigProperty(name = "app.environment")
     String apiGatewayStage;
 
-    public ApiKeyService() {
+    public ApiKeyServiceImpl() {
         this.apiGatewayClient = ApiGatewayClient.builder()
                 .httpClient(ApacheHttpClient.builder().build())
                 .region(Region.EU_SOUTH_1)
@@ -36,6 +37,7 @@ public class ApiKeyService {
                 .build();
     }
 
+    @Override
     public Uni<ApiKeyDTO> createApiKey(String clientName) {
         return Uni.createFrom().item(() -> {
             CreateApiKeyRequest request = CreateApiKeyRequest.builder()
@@ -47,6 +49,7 @@ public class ApiKeyService {
         });
     }
 
+    @Override
     public Uni<ApiKeyDTO> getApiKey(String clientName) {
         return Uni.createFrom().item(() -> {
             // Cerca le chiavi API con il nome specificato
@@ -65,6 +68,7 @@ public class ApiKeyService {
         });
     }
 
+    @Override
     public Uni<Void> deleteApiKey(String apiKeyId) {
         return Uni.createFrom().item(() -> {
                     DeleteApiKeyRequest request = DeleteApiKeyRequest.builder()
@@ -75,6 +79,7 @@ public class ApiKeyService {
         }).onFailure().invoke(th -> log.error("Failed to delete usage plan with id: {}", apiKeyId, th)).replaceWithVoid();
     }
 
+    @Override
     public Uni<UsagePlanDTO> createUsagePlan(String planName, String apiKeyId, int limit, QuotaPeriodType period, int burstLimit, double rateLimit) {
         return Uni.createFrom().item(() -> {
             CreateUsagePlanRequest usagePlanRequest = CreateUsagePlanRequest.builder()
@@ -98,6 +103,7 @@ public class ApiKeyService {
         });
     }
 
+    @Override
     public Uni<UsagePlanDTO> getUsagePlan(String usagePlanId) {
         return Uni.createFrom().item(() -> {
             GetUsagePlanRequest usagePlanRequest = GetUsagePlanRequest.builder()
@@ -113,6 +119,7 @@ public class ApiKeyService {
         });
     }
 
+    @Override
     public Uni<UsagePlanDTO> updateUsagePlan(String usagePlanId, UsagePlanUpdateDTO usagePlanUpdateDTO) {
         return Uni.createFrom().item(() -> {
             UpdateUsagePlanRequest updateUsagePlanRequest = UpdateUsagePlanRequest.builder()
@@ -142,6 +149,7 @@ public class ApiKeyService {
         return patchOperations;
     }
 
+    @Override
     public Uni<Void> deleteUsagePlan(String usagePlanId) {
         return Uni.createFrom().item(() -> {
 

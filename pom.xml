@@ -16,6 +16,7 @@
     <quarkus.platform.version>3.8.4</quarkus.platform.version>
     <quarkus-hibernate-validator.version>3.6.6</quarkus-hibernate-validator.version>
     <quarkus-amazon-services.version>2.16.0</quarkus-amazon-services.version>
+    <mapstruct.version>1.5.5.Final</mapstruct.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.0.0</surefire-plugin.version>
     <mockito.core.version>5.4.0</mockito.core.version>
@@ -157,6 +158,31 @@
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-extension-trace-propagators</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-reactive</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-reactive-panache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-reactive-pg-client</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct</artifactId>
+      <version>${mapstruct.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct-processor</artifactId>
+      <version>${mapstruct.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- TEST -->

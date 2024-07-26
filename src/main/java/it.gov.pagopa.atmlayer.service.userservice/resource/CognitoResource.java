@@ -2,20 +2,19 @@ package it.gov.pagopa.atmlayer.service.userservice.resource;
 
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
-import it.gov.pagopa.atmlayer.service.userservice.service.impl.CognitoService;
+import it.gov.pagopa.atmlayer.service.userservice.service.impl.CognitoServiceImpl;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 
 @ApplicationScoped
 @Path("/cognito")
 public class CognitoResource {
 
     @Inject
-    CognitoService cognitoService;
+    CognitoServiceImpl cognitoService;
 
     @GET
     @Path("/client-credentials/{clientId}")

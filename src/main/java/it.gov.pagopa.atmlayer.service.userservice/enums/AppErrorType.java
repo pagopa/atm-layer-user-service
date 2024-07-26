@@ -4,5 +4,10 @@ import lombok.Getter;
 
 @Getter
 public enum AppErrorType {
-    GENERIC
+    GENERIC,
+    INVALID_ARGUMENT,
+    CONSTRAINT_VIOLATION,
+    NOT_EXISTING_USER_ID,
+    NOT_EXISTING_USER_PROFILE,
+    BLANK_FIELDS
 }

@@ -4,7 +4,7 @@ import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
-import it.gov.pagopa.atmlayer.service.userservice.service.impl.ApiKeyService;
+import it.gov.pagopa.atmlayer.service.userservice.service.impl.ApiKeyServiceImpl;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -17,7 +17,7 @@ import software.amazon.awssdk.services.apigateway.model.QuotaPeriodType;
 public class ApiKeyResource {
 
     @Inject
-    ApiKeyService apiKeyService;
+    ApiKeyServiceImpl apiKeyService;
 
     @GET
     @Path("/api-key/retrieve/{clientName}")
