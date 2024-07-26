@@ -23,7 +23,10 @@ public enum AppErrorCodeEnum {
     PROFILE_NOT_FOUND("ATMLM_4000058", "Non esiste un profilo con l'id indicato", CONSTRAINT_VIOLATION),
     PROFILE_OR_USER_NOT_FOUND("ATMLM_4000059","Utente o profilo non trovato", CONSTRAINT_VIOLATION),
     NO_ASSOCIATION_FOUND("ATMLM_4000060","Nessuna associazione trovata", CONSTRAINT_VIOLATION),
-    ALL_FIELDS_ARE_BLANK("ATMLM_4000061", "Tutti i campi sono vuoti", BLANK_FIELDS);
+    ALL_FIELDS_ARE_BLANK("ATMLM_4000061", "Tutti i campi sono vuoti", BLANK_FIELDS),
+    BANK_WITH_THE_SAME_ID_ALREADY_EXISTS("ATMLM_4000062", "Una banca con lo stesso acquirerId esiste già", CONSTRAINT_VIOLATION),
+    BANK_NOT_FOUND("ATMLM_4000063", "Non esiste tale acquirerId nel database", NON_EXISTING_ACQUIRER_ID),
+    RATEMIN_GREATER_THAN_RATEMAX("ATMLM_4000064", "rateMax deve essere maggiore di rateMin", CONSTRAINT_VIOLATION);
 
     private final String errorCode;
     private final String errorMessage;
