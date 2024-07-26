@@ -17,9 +17,8 @@ import java.util.stream.Collectors;
 public class BankRepository implements PanacheRepositoryBase<BankEntity, String> {
 
     public Uni<PageInfo<BankEntity>> findByFilters(Map<String, Object> params, int pageIndex, int pageSize) {
-
         String queryFilters = params.keySet().stream()
-                .map(key -> "rateMin".equals(key) ? "b.rateLimit >= :" + key : ("rateMax".equals(key) ? "b.rateLimit <= :" + key : "b." + key + " = :" + key))
+                .map(key -> "b." + key + " = :" + key)
                 .collect(Collectors.joining(" and "));
 
         PanacheQuery<BankEntity> queryResult = find(("select b from BankEntity b")
@@ -36,6 +35,7 @@ public class BankRepository implements PanacheRepositoryBase<BankEntity, String>
                             .transform(list -> new PageInfo<>(pageIndex, pageSize, totalCount, totalPages, list));
                 });
     }
+
 
     public Uni<List<BankEntity>> findAllById(String acquirerId) {
         String sql = "SELECT * FROM banks WHERE acquirer_id = :acquirerId order by last_updated_at DESC";

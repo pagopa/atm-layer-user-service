@@ -24,7 +24,8 @@ public abstract class BankMapper {
         bankEntity.setEnabled(true);
         bankEntity.setAcquirerId(bankInsertionDTO.getAcquirerId());
         bankEntity.setDenomination(bankInsertionDTO.getDenomination());
-        bankEntity.setRateLimit(bankInsertionDTO.getRateLimit());
+        bankEntity.setApiKeyId(bankInsertionDTO.getApiKeyId());
+        bankEntity.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
         return bankEntity;
     }
 

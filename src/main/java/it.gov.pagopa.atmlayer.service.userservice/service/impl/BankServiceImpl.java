@@ -41,21 +41,26 @@ public class BankServiceImpl implements BankService {
 
                     if (foundBankList.isEmpty()) {
                         String clientId = UUID.randomUUID().toString();
-                        String clientSecret = UUID.randomUUID().toString();
                         BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
                         bankEntity.setClientId(clientId);
-                        bankEntity.setClientSecret(clientSecret);
+                        bankEntity.setApiKeyId(bankInsertionDTO.getApiKeyId());
+                        if(bankInsertionDTO.getUsagePlanId() != null) {
+                            bankEntity.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
+                        }
                         return bankRepository.persist(bankEntity);
                     }
 
                     BankEntity foundBank = foundBankList.get(0);
-                    if (foundBank.getEnabled()) {
+                    if (Boolean.TRUE.equals(foundBank.getEnabled())) {
                         log.error("acquirerId {} already exists", acquirerId);
                         throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
                     }
                     foundBank.setEnabled(true);
                     foundBank.setDenomination(bankInsertionDTO.getDenomination());
-                    foundBank.setRateLimit(bankInsertionDTO.getRateLimit());
+                    foundBank.setApiKeyId(bankInsertionDTO.getApiKeyId());
+                    if(bankInsertionDTO.getUsagePlanId() != null) {
+                        foundBank.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
+                    }
                     return bankRepository.persist(foundBank);
                 }));
     }
@@ -70,7 +75,8 @@ public class BankServiceImpl implements BankService {
                 .onItem()
                 .transformToUni(Unchecked.function(bankFound -> {
                     bankFound.setDenomination(bankInsertionDTO.getDenomination());
-                    bankFound.setRateLimit(bankInsertionDTO.getRateLimit());
+                    bankFound.setApiKeyId(bankInsertionDTO.getApiKeyId());
+                    bankFound.setUsagePlanId(bankFound.getUsagePlanId());
                     return bankRepository.persist(bankFound);
                 }));
     }
@@ -107,15 +113,10 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @WithSession
-    public Uni<PageInfo<BankEntity>> searchBanks(int pageIndex, int pageSize, String acquirerId, String denomination, int rateMin, int rateMax, String clientId) {
-        if (rateMax < rateMin) {
-            throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.RATEMIN_GREATER_THAN_RATEMAX);
-        }
+    public Uni<PageInfo<BankEntity>> searchBanks(int pageIndex, int pageSize, String acquirerId, String denomination, String clientId) {
         Map<String, Object> filters = new HashMap<>();
         filters.put("acquirerId", acquirerId);
         filters.put("denomination", denomination);
-        filters.put("rateMin", rateMin == 0 ? null : rateMin);
-        filters.put("rateMax", rateMax == 0 ? null : rateMax);
         filters.put("clientId", clientId);
         filters.remove(null);
         filters.values().removeAll(Collections.singleton(null));

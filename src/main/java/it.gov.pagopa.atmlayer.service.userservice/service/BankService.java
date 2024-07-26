@@ -15,7 +15,7 @@ public interface BankService {
 
     Uni<Void> disable(String acquirerId);
 
-    Uni<PageInfo<BankEntity>> searchBanks(int pageIndex, int pageSize, String acquirerId, String denomination, int rateMin, int rateMax, String clientId);
+    Uni<PageInfo<BankEntity>> searchBanks(int pageIndex, int pageSize, String acquirerId, String denomination, String clientId);
 
     Uni<BankEntity> findBankById(String acquirerId);
 

@@ -35,11 +35,11 @@ public class BankEntity extends PanacheEntityBase implements Serializable {
     @Column(name = "client_id")
     private String clientId;
 
-    @Column(name = "client_secret")
-    private String clientSecret;
+    @Column(name = "api_key_id")
+    private String apiKeyId;
 
-    @Column(name = "rate_limit")
-    private int rateLimit;
+    @Column(name = "usage_plan_id")
+    private String usagePlanId;
 
     @Column(name = "enabled", columnDefinition = "boolean default true")
     private Boolean enabled;
