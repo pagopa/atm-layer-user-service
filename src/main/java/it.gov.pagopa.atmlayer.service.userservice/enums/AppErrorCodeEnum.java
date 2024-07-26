@@ -10,23 +10,23 @@ import static it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorType.*;
 @Getter
 public enum AppErrorCodeEnum {
 
-    ATML_USER_SERVICE_500("ATML_USER_SERVICE_500", "An unexpected error has occurred, see logs for more info", GENERIC),
-    PAGE_SIZE_WRONG_VALUE("ATMLM_4000041", "Pagina e dimensione non devono essere nulli o vuoti, e la dimensione deve essere maggiore di zero", INVALID_ARGUMENT),
-    USER_PROFILE_WITH_SAME_ID_ALREADY_EXIST("ATMLM_4000043", "Un profilo utente con lo stesso id esiste già", CONSTRAINT_VIOLATION),
-    NO_USER_PROFILE_FOUND_FOR_ID("ATMLM_4000044", "Nessun utente trovato per l'id selezionato", NOT_EXISTING_USER_ID),
-    NO_USER_PROFILE_FOUND_FOR_PROFILE("ATMLM_4000045", "Nessun profilo utente trovato", NOT_EXISTING_USER_PROFILE),
-    USER_WITH_SAME_ID_ALREADY_EXIST("ATMLM_4000053", "Un utente con lo stesso id esiste già", CONSTRAINT_VIOLATION),
-    USER_PROFILE_ALREADY_EXIST("ATMLM_4000054", "Profilo già associato all'utente", CONSTRAINT_VIOLATION),
-    NO_USER_PROFILE_FOUND("ATMLM_4000055", "Nessun user profile trovato", CONSTRAINT_VIOLATION),
-    NO_USER_FOUND_FOR_ID("ATMLM_4000056", "Nessun utente trovato per l'id selezionato", NOT_EXISTING_USER_ID),
-    PROFILE_ALREADY_EXIST("ATMLM_4000057", "Esiste già un profilo con lo stesso id", CONSTRAINT_VIOLATION),
-    PROFILE_NOT_FOUND("ATMLM_4000058", "Non esiste un profilo con l'id indicato", CONSTRAINT_VIOLATION),
-    PROFILE_OR_USER_NOT_FOUND("ATMLM_4000059","Utente o profilo non trovato", CONSTRAINT_VIOLATION),
-    NO_ASSOCIATION_FOUND("ATMLM_4000060","Nessuna associazione trovata", CONSTRAINT_VIOLATION),
-    ALL_FIELDS_ARE_BLANK("ATMLM_4000061", "Tutti i campi sono vuoti", BLANK_FIELDS),
-    BANK_WITH_THE_SAME_ID_ALREADY_EXISTS("ATMLM_4000062", "Una banca con lo stesso acquirerId esiste già", CONSTRAINT_VIOLATION),
-    BANK_NOT_FOUND("ATMLM_4000063", "Non esiste tale acquirerId nel database", NON_EXISTING_ACQUIRER_ID),
-    RATEMIN_GREATER_THAN_RATEMAX("ATMLM_4000064", "rateMax deve essere maggiore di rateMin", CONSTRAINT_VIOLATION);
+    ATML_USER_SERVICE_500("ATMLU_500", "An unexpected error has occurred, see logs for more info", GENERIC),
+    PAGE_SIZE_WRONG_VALUE("ATMLU_4000001", "Pagina e dimensione non devono essere nulli o vuoti, e la dimensione deve essere maggiore di zero", INVALID_ARGUMENT),
+    USER_PROFILE_WITH_SAME_ID_ALREADY_EXIST("ATMLU_4000002", "Un profilo utente con lo stesso id esiste già", CONSTRAINT_VIOLATION),
+    NO_USER_PROFILE_FOUND_FOR_ID("ATMLU_4000003", "Nessun utente trovato per l'id selezionato", NOT_EXISTING_USER_ID),
+    NO_USER_PROFILE_FOUND_FOR_PROFILE("ATMLU_4000004", "Nessun profilo utente trovato", NOT_EXISTING_USER_PROFILE),
+    USER_WITH_SAME_ID_ALREADY_EXIST("ATMLU_4000005", "Un utente con lo stesso id esiste già", CONSTRAINT_VIOLATION),
+    USER_PROFILE_ALREADY_EXIST("ATMLU_4000006", "Profilo già associato all'utente", CONSTRAINT_VIOLATION),
+    NO_USER_PROFILE_FOUND("ATMLU_4000007", "Nessun user profile trovato", CONSTRAINT_VIOLATION),
+    NO_USER_FOUND_FOR_ID("ATMLU_4000008", "Nessun utente trovato per l'id selezionato", NOT_EXISTING_USER_ID),
+    PROFILE_ALREADY_EXIST("ATMLU_4000009", "Esiste già un profilo con lo stesso id", CONSTRAINT_VIOLATION),
+    PROFILE_NOT_FOUND("ATMLU_4000010", "Non esiste un profilo con l'id indicato", CONSTRAINT_VIOLATION),
+    PROFILE_OR_USER_NOT_FOUND("ATMLU_4000011","Utente o profilo non trovato", CONSTRAINT_VIOLATION),
+    NO_ASSOCIATION_FOUND("ATMLU_4000012","Nessuna associazione trovata", CONSTRAINT_VIOLATION),
+    ALL_FIELDS_ARE_BLANK("ATMLU_4000013", "Tutti i campi sono vuoti", BLANK_FIELDS),
+    BANK_WITH_THE_SAME_ID_ALREADY_EXISTS("ATMLU_4000014", "Una banca con lo stesso acquirerId esiste già", CONSTRAINT_VIOLATION),
+    BANK_NOT_FOUND("ATMLU_4000015", "Non esiste tale acquirerId nel database", NON_EXISTING_ACQUIRER_ID),
+    RATEMIN_GREATER_THAN_RATEMAX("ATMLU_4000016", "rateMax deve essere maggiore di rateMin", CONSTRAINT_VIOLATION);
 
     private final String errorCode;
     private final String errorMessage;
