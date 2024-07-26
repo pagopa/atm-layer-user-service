@@ -105,7 +105,7 @@ public class UserProfilesServiceImpl implements UserProfilesService {
     }
 
     @WithTransaction
-    protected Uni<UserProfiles> insertSingleUserProfile(UserProfiles userProfiles) {
+    public Uni<UserProfiles> insertSingleUserProfile(UserProfiles userProfiles) {
         return this.userProfilesRepository.findById(userProfiles.getUserProfilesPK())
                 .onItem().transformToUni(existingUserProfile -> {
                     if (existingUserProfile != null) {
@@ -122,7 +122,7 @@ public class UserProfilesServiceImpl implements UserProfilesService {
     }
 
     @WithTransaction
-    protected Uni<Boolean> isUserProfileExisting(UserProfiles userProfiles) {
+    public Uni<Boolean> isUserProfileExisting(UserProfiles userProfiles) {
         return this.userProfilesRepository.findById(userProfiles.getUserProfilesPK())
                 .onItem().transform(Objects::nonNull);
     }
