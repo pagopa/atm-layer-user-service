@@ -38,7 +38,7 @@ tracing:
   endpointBasePath: "http://jeager-manual-trace-ecs-priv-b19cfd091be2d616.elb.eu-south-1.amazonaws.com:4317"
   enableJDBCMonitoring: "true"
 
-milAuthenticator:
+userService:
   environment: uat
   executionMode: READ_WRITE
   logLevel: INFO

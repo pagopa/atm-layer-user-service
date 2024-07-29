@@ -40,21 +40,21 @@ spec:
           env:
             - name: TZ
               value: Europe/Rome
-            - name: MIL_AUTHENTICATOR_ENVIRONMENT
-              value: "{{ .Values.milAuthenticator.environment }}"
-            - name: MIL_AUTHENTICATOR_EXECUTION_MODE
-              value: "{{ .Values.milAuthenticator.executionMode }}"
-            - name: MIL_AUTHENTICATOR_LOG_LEVEL
-              value: "{{ .Values.milAuthenticator.logLevel }}"
-            - name: MIL_AUTHENTICATOR_APPLICATION_BASE_PATH
-              value: "{{ .Values.milAuthenticator.applicationBasePath }}"
-            - name: MIL_AUTHENTICATOR_SWAGGER_PATH
-              value: "{{ .Values.milAuthenticator.swaggerPath }}"
-            - name: MIL_AUTHENTICATOR_HEALTH_PATH
-              value: "{{ .Values.milAuthenticator.healthPath }}"
-            - name: MIL_AUTHENTICATOR_OPENAPI_PATH
-              value: "{{ .Values.milAuthenticator.openapiPath }}"
-            - name: MIL_AUTHENTICATOR_AUTH_CLIENT_CREDENTIALS
+            - name: USER_SERVICE_ENVIRONMENT
+              value: "{{ .Values.userService.environment }}"
+            - name: USER_SERVICE_EXECUTION_MODE
+              value: "{{ .Values.userService.executionMode }}"
+            - name: USER_SERVICE_LOG_LEVEL
+              value: "{{ .Values.userService.logLevel }}"
+            - name: USER_SERVICE_APPLICATION_BASE_PATH
+              value: "{{ .Values.userService.applicationBasePath }}"
+            - name: USER_SERVICE_SWAGGER_PATH
+              value: "{{ .Values.userService.swaggerPath }}"
+            - name: USER_SERVICE_HEALTH_PATH
+              value: "{{ .Values.userService.healthPath }}"
+            - name: USER_SERVICE_OPENAPI_PATH
+              value: "{{ .Values.userService.openapiPath }}"
+            - name: USER_SERVICE_AUTH_CLIENT_CREDENTIALS
               value: "{{ .Values.milAuth.clientCredentials }}"
             - name: MIL_BASE_PATH
               value: "{{ .Values.milBasePath }}"

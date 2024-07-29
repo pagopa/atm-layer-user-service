@@ -38,7 +38,7 @@ tracing:
   endpointBasePath: "http://jaeger-collector.default.svc.cluster.local:4317"
   enableJDBCMonitoring: "true"
 
-milAuthenticator:
+userService:
   environment: dev
   executionMode: READ_WRITE
   logLevel: INFO
