@@ -23,6 +23,16 @@ secretProviderClass:
 
 milBasePath: https://mil-d-perf-ca.agreeablestone-406ca858.westeurope.azurecontainerapps.io/perf
 
+database:
+  type: postgresql
+  url: postgresql://pagopa-uat-atm-layer-rds.cluster-csdbokdg0q4t.eu-south-1.rds.amazonaws.com:5432/pagopadb?search_path=atm_layer_model_schema
+  db_name: pagopadb
+  credentialsSecretEnabled: true
+  credentialsSecretName: "pagopa-uat-atm-layer-model-database"
+  credentialsSecretKeys:
+    username: USERNAME_DB
+    password: PASSWORD_DB
+
 tracing:
   enabled: "true"
   endpointBasePath: "http://jeager-manual-trace-ecs-priv-b19cfd091be2d616.elb.eu-south-1.amazonaws.com:4317"

@@ -23,6 +23,16 @@ secretProviderClass:
 
 milBasePath: https://mil-u-apim.azure-api.net
 
+database:
+  type: postgresql
+  url: postgresql://pagopa-dev-atm-layer-rds.cluster-cyezwzpjc2tj.eu-south-1.rds.amazonaws.com:5431/pagopadb?search_path=atm_layer_model_schema
+  db_name: pagopadb
+  credentialsSecretEnabled: true
+  credentialsSecretName: "pagopa-dev-atm-layer-model-database"
+  credentialsSecretKeys:
+    username: USERNAME_DB
+    password: PASSWORD_DB
+
 tracing:
   enabled: "true"
   endpointBasePath: "http://jaeger-collector.default.svc.cluster.local:4317"

@@ -92,6 +92,22 @@ spec:
                   name: {{ .Values.milAuth.credentialsSecretName }}
                   key: {{ .Values.milAuth.credentialsSecretKeys.clientSecret }}
             {{- end }}
+            - - name: MODEL_DB_TYPE
+                value: "{{ .Values.database.type }}"
+              - name: MODEL_DB_URL
+                value: "{{ .Values.database.url }}"
+              {{- if .Values.database.credentialsSecretEnabled }}
+              - name: MODEL_DB_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Values.database.credentialsSecretName }}
+                    key: {{ .Values.database.credentialsSecretKeys.username }}
+              - name: MODEL_DB_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Values.database.credentialsSecretName }}
+                    key: {{ .Values.database.credentialsSecretKeys.password }}
+              {{- end }}
           volumeMounts:
           {{- if .Values.secretProviderClass.enabled }}
           - name: secrets-store-inline
