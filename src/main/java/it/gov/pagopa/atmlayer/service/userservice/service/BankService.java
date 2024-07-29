@@ -21,4 +21,5 @@ public interface BankService {
 
     Uni<List<BankEntity>> getAll();
 
+
 }

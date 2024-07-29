@@ -1,6 +1,7 @@
 package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 
 import io.smallrye.mutiny.Uni;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
@@ -80,13 +81,13 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    public Uni<UsagePlanDTO> createUsagePlan(String planName, String apiKeyId, int limit, QuotaPeriodType period, int burstLimit, double rateLimit) {
+    public Uni<UsagePlanDTO> createUsagePlan(BankInsertionDTO bankInsertionDTO, String apiKeyId) {
         return Uni.createFrom().item(() -> {
             CreateUsagePlanRequest usagePlanRequest = CreateUsagePlanRequest.builder()
-                    .name(planName)
-                    .description("Usage plan for " + planName)
-                    .quota(q -> q.limit(limit).period(period.toString()))
-                    .throttle(t -> t.burstLimit(burstLimit).rateLimit(rateLimit))
+                    .name(bankInsertionDTO.getPlanName())
+                    .description("Usage plan for " + bankInsertionDTO.getPlanName())
+                    .quota((bankInsertionDTO.getLimit() != null && bankInsertionDTO.getPeriod() != null) ? q -> q.limit(bankInsertionDTO.getLimit()).period(bankInsertionDTO.getPeriod()) : null)
+                    .throttle((bankInsertionDTO.getBurstLimit() != null && bankInsertionDTO.getRateLimit() != null) ? t -> t.burstLimit(bankInsertionDTO.getBurstLimit()).rateLimit(bankInsertionDTO.getRateLimit()) : null)
                     .apiStages(ApiStage.builder().apiId(apiGatewayId).stage(apiGatewayStage).build())
                     .build();
             CreateUsagePlanResponse usagePlanResponse = apiGatewayClient.createUsagePlan(usagePlanRequest);

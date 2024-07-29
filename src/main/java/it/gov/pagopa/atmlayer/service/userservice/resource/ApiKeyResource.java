@@ -1,6 +1,7 @@
 package it.gov.pagopa.atmlayer.service.userservice.resource;
 
 import io.smallrye.mutiny.Uni;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
@@ -40,12 +41,12 @@ public class ApiKeyResource {
         return apiKeyService.createApiKey(clientName);
     }
 
-    @POST
-    @Path("/create-usage-plan")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<UsagePlanDTO> createUsagePlan(@HeaderParam("planName") String planName, @HeaderParam("apiKeyId") String apiKeyId, @HeaderParam("limit") int limit, @HeaderParam("period") QuotaPeriodType period, @HeaderParam("burstLimit") int burstLimit, @HeaderParam("rateLimit") double rateLimit) {
-        return apiKeyService.createUsagePlan(planName, apiKeyId, limit, period, burstLimit, rateLimit);
-    }
+//    @POST
+//    @Path("/create-usage-plan")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public Uni<UsagePlanDTO> createUsagePlan(@RequestBody (required = true) BankInsertionDTO bankInsertionDTO) {
+//        return apiKeyService.createUsagePlan(bankInsertionDTO);
+//    }
 
     @GET
     @Path("/usage-plan/{usagePlanId}")

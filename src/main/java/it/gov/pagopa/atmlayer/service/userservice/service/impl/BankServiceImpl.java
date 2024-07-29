@@ -9,9 +9,13 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
+import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
+import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import it.gov.pagopa.atmlayer.service.userservice.repository.BankRepository;
+import it.gov.pagopa.atmlayer.service.userservice.service.ApiKeyService;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
+import it.gov.pagopa.atmlayer.service.userservice.service.CognitoService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -29,56 +33,92 @@ public class BankServiceImpl implements BankService {
     @Inject
     BankRepository bankRepository;
 
+    @Inject
+    CognitoService cognitoService;
+
+    @Inject
+    ApiKeyService apiKeyService;
+
     @Override
     @WithTransaction
     public Uni<BankEntity> insertBank(BankInsertionDTO bankInsertionDTO) {
         String acquirerId = bankInsertionDTO.getAcquirerId();
         log.info("Inserting bank with acquirerId : {}", acquirerId);
 
-        return this.bankRepository.findAllById(bankInsertionDTO.getAcquirerId())
+        return this.bankRepository.findById(bankInsertionDTO.getAcquirerId())
                 .onItem()
-                .transformToUni(Unchecked.function(foundBankList -> {
+                .transformToUni(Unchecked.function(foundBank -> {
 
-                    if (foundBankList.isEmpty()) {
-                        String clientId = UUID.randomUUID().toString();
-                        BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
-                        bankEntity.setClientId(clientId);
-                        bankEntity.setApiKeyId(bankInsertionDTO.getApiKeyId());
-                        if(bankInsertionDTO.getUsagePlanId() != null) {
-                            bankEntity.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
-                        }
-                        return bankRepository.persist(bankEntity);
-                    }
-
-                    BankEntity foundBank = foundBankList.get(0);
-                    if (Boolean.TRUE.equals(foundBank.getEnabled())) {
+//                    if (foundBankList.isEmpty()) {
+//                        cognitoService.generateClient(bankInsertionDTO.getDenomination());
+//                        String clientId = bankInsertionDTO.getDenomination();
+//                        BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
+//                        bankEntity.setClientId(clientId);
+//                        bankEntity.setApiKeyId(bankInsertionDTO.getApiKeyId());
+//                        if(bankInsertionDTO.getUsagePlanId() != null) {
+//                            bankEntity.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
+//                        }
+//                        return bankRepository.persist(bankEntity);
+//                    }
+//
+//                    BankEntity foundBank = foundBankList.get(0);
+//                    if (Boolean.TRUE.equals(foundBank.getEnabled())) {
+//                        log.error("acquirerId {} already exists", acquirerId);
+//                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
+//                    }
+//                    foundBank.setEnabled(true);
+//                    foundBank.setDenomination(bankInsertionDTO.getDenomination());
+//                    foundBank.setApiKeyId(bankInsertionDTO.getApiKeyId());
+//                    if(bankInsertionDTO.getUsagePlanId() != null) {
+//                        foundBank.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
+//                    }
+//                    return bankRepository.persist(foundBank);
+//                }));
+                    if (foundBank != null && Boolean.TRUE.equals(foundBank.getEnabled())) {
                         log.error("acquirerId {} already exists", acquirerId);
                         throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
                     }
-                    foundBank.setEnabled(true);
-                    foundBank.setDenomination(bankInsertionDTO.getDenomination());
-                    foundBank.setApiKeyId(bankInsertionDTO.getApiKeyId());
-                    if(bankInsertionDTO.getUsagePlanId() != null) {
-                        foundBank.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
-                    }
-                    return bankRepository.persist(foundBank);
+                        return cognitoService.generateClient(bankInsertionDTO.getDenomination()).onItem().transformToUni(cognitoCredentials -> {
+                            ClientCredentialsDTO createdClient = cognitoCredentials;
+                            log.info("client credentials created : {}", createdClient);
+                            return apiKeyService.createApiKey(createdClient.getClientName()).onItem().transformToUni(apiKey -> {
+                                ApiKeyDTO apikeyCreated = apiKey;
+                                log.info("apikey created : {}", apikeyCreated);
+                                return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
+                                    log.info("associatedUsagePlan created : {}", associatedUsagePlan);
+                                    BankEntity bankEntity;
+                                    if (foundBank != null) {
+                                        foundBank.setEnabled(true);
+                                        bankEntity = foundBank;
+                                    } else {
+                                        bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
+                                    }
+                                    bankEntity.setClientId(createdClient.getClientId());
+                                    bankEntity.setApiKeyId(apikeyCreated.getId());
+                                    bankEntity.setUsagePlanId(associatedUsagePlan.getId());
+                                    log.info("bankEntity : {}", bankEntity);
+                                    return bankRepository.persist(bankEntity);
+                                });
+                            });
+                        });
                 }));
     }
 
     @Override
     @WithTransaction
     public Uni<BankEntity> updateBank(BankInsertionDTO bankInsertionDTO) {
-        String acquirerId = bankInsertionDTO.getAcquirerId();
-        log.info("Updating bank with acquirerId : {}", acquirerId);
-
-        return this.findBankById(bankInsertionDTO.getAcquirerId())
-                .onItem()
-                .transformToUni(Unchecked.function(bankFound -> {
-                    bankFound.setDenomination(bankInsertionDTO.getDenomination());
-                    bankFound.setApiKeyId(bankInsertionDTO.getApiKeyId());
-                    bankFound.setUsagePlanId(bankFound.getUsagePlanId());
-                    return bankRepository.persist(bankFound);
-                }));
+//        String acquirerId = bankInsertionDTO.getAcquirerId();
+//        log.info("Updating bank with acquirerId : {}", acquirerId);
+//
+//        return this.findBankById(bankInsertionDTO.getAcquirerId())
+//                .onItem()
+//                .transformToUni(Unchecked.function(bankFound -> {
+//                    bankFound.setDenomination(bankInsertionDTO.getDenomination());
+//                    bankFound.setApiKeyId(bankInsertionDTO.getApiKeyId());
+//                    bankFound.setUsagePlanId(bankFound.getUsagePlanId());
+//                    return bankRepository.persist(bankFound);
+//                }));
+        return null;
     }
 
     @Override

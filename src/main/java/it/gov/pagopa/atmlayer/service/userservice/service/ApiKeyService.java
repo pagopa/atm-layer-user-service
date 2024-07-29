@@ -1,6 +1,7 @@
 package it.gov.pagopa.atmlayer.service.userservice.service;
 
 import io.smallrye.mutiny.Uni;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
@@ -14,7 +15,7 @@ public interface ApiKeyService {
 
     Uni<Void> deleteApiKey(String apiKeyId);
 
-    Uni<UsagePlanDTO> createUsagePlan(String planName, String apiKeyId, int limit, QuotaPeriodType period, int burstLimit, double rateLimit);
+    Uni<UsagePlanDTO> createUsagePlan(BankInsertionDTO bankInsertionDTO, String apiKeyId);
 
     Uni<UsagePlanDTO> getUsagePlan(String usagePlanId);
 
