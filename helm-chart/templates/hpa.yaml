@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "atm-layer-mil-authenticator.fullname" . }}
+  name: {{ include "atm-layer-user-service.fullname" . }}
   labels:
-    {{- include "atm-layer-mil-authenticator.labels" . | nindent 4 }}
+    {{- include "atm-layer-user-service.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "atm-layer-mil-authenticator.fullname" . }}
+    name: {{ include "atm-layer-user-service.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

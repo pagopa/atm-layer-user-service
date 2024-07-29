@@ -1,4 +1,4 @@
-# Default values for atm-layer-mil-authenticator.
+# Default values for atm-layer-user-service.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -18,7 +18,7 @@ fullnameOverride: ""
 
 secretProviderClass:
   enabled: true
-  name: atm-layer-mil-authenticator-secrets
+  name: atm-layer-user-service-secrets
   env: prod
 
 milBasePath: https://mil-u-apim.azure-api.net
@@ -32,15 +32,15 @@ milAuthenticator:
   environment: prod
   executionMode: READ_WRITE
   logLevel: INFO
-  applicationBasePath: /api/v1/mil-authenticator
+  applicationBasePath: /api/v1/user-service
   swaggerPath: /swagger-ui
-  healthPath: /health/v1/mil-authenticator
-  openapiPath: /health/v1/mil-authenticator
+  healthPath: /health/v1/user-service
+  openapiPath: /health/v1/user-service
 
 milAuth:
   clientCredentials: client_credentials
   credentialsSecretEnabled: true
-  credentialsSecretName: "pagopa-prod-atm-layer-mil-authenticator-mil-auth"
+  credentialsSecretName: "pagopa-prod-atm-layer-user-service-mil-auth"
   credentialsSecretKeys:
     clientId: CLIENT_ID
     clientSecret: CLIENT_SECRET
@@ -50,7 +50,7 @@ cognitoUserPoolId: eu-south-1_jN5nkKfcY
 
 redis:
   credentialsSecretEnabled: true
-  credentialsSecretName: "pagopa-prod-atm-layer-mil-authenticator-redis"
+  credentialsSecretName: "pagopa-prod-atm-layer-user-service-redis"
   credentialsSecretKeys:
     host: host
     port: port
@@ -63,7 +63,7 @@ serviceAccount:
     eks.amazonaws.com/role-arn: arn:aws:iam::00000000000:role/pagopa-prod-atm-layer-xxxxxx-serviceaccount-role
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: pagopa-prod-atm-layer-mil-authenticator
+  name: pagopa-prod-atm-layer-user-service
 
 podAnnotations: {}
 
@@ -79,19 +79,19 @@ securityContext: {}
   # runAsUser: 1000
 
 deployment:
-  name: pagopa-prod-atm-layer-mil-authenticator
+  name: pagopa-prod-atm-layer-user-service
   annotations:
     reloader.stakater.com/auto: "true"
-    secret.reloader.stakater.com/reload: pagopa-prod-atm-layer-mil-authenticator-redis, pagopa-prod-atm-layer-mil-authenticator-mil-auth
+    secret.reloader.stakater.com/reload: pagopa-prod-atm-layer-user-service-redis, pagopa-prod-atm-layer-user-service-mil-auth
 
 service:
-  name: pagopa-prod-atm-layer-mil-authenticator
+  name: pagopa-prod-atm-layer-user-service
   type: NodePort
   port: 8080
 
 ingress:
   enabled: false
-  name: pagopa-prod-atm-layer-mil-authenticator
+  name: pagopa-prod-atm-layer-user-service
   className: ""
   annotations: 
     kubernetes.io/ingress.class: "alb"
@@ -102,7 +102,7 @@ ingress:
   hosts:
     - host:
       paths:
-        - path: /api/v1/mil-authenticator
+        - path: /api/v1/user-service
           pathType: Prefix
   tls: []
   #  - secretName: chart-example-tls

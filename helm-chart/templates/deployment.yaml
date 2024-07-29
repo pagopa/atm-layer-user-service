@@ -21,7 +21,7 @@ spec:
         App: {{ .Values.deployment.name }}
         force-recreate: {{ randAlphaNum 5 | quote }}
     spec:
-      serviceAccountName: {{ include "atm-layer-mil-authenticator.serviceAccountName" . }}
+      serviceAccountName: {{ include "atm-layer-user-service.serviceAccountName" . }}
       volumes:
       {{- if .Values.secretProviderClass.enabled }}
       - name: secrets-store-inline
