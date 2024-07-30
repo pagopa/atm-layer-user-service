@@ -2,11 +2,13 @@ package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
+import it.gov.pagopa.atmlayer.service.userservice.mapper.ApiKeyMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.service.ApiKeyService;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
@@ -29,6 +31,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     String apiGatewayId;
     @ConfigProperty(name = "app.environment")
     String apiGatewayStage;
+    @Inject
+    ApiKeyMapper mapper;
 
     public ApiKeyServiceImpl() {
         this.apiGatewayClient = ApiGatewayClient.builder()
@@ -84,14 +88,14 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     public Uni<UsagePlanDTO> createUsagePlan(BankInsertionDTO bankInsertionDTO, String apiKeyId) {
         return Uni.createFrom().item(() -> {
             CreateUsagePlanRequest usagePlanRequest = CreateUsagePlanRequest.builder()
-                    .name(bankInsertionDTO.getPlanName())
-                    .description("Usage plan for " + bankInsertionDTO.getPlanName())
+                    .name(bankInsertionDTO.getDenomination() + "-plan")
+                    .description("Usage plan for " + bankInsertionDTO.getDenomination())
                     .quota((bankInsertionDTO.getLimit() != null && bankInsertionDTO.getPeriod() != null) ? q -> q.limit(bankInsertionDTO.getLimit()).period(bankInsertionDTO.getPeriod()) : null)
                     .throttle((bankInsertionDTO.getBurstLimit() != null && bankInsertionDTO.getRateLimit() != null) ? t -> t.burstLimit(bankInsertionDTO.getBurstLimit()).rateLimit(bankInsertionDTO.getRateLimit()) : null)
                     .apiStages(ApiStage.builder().apiId(apiGatewayId).stage(apiGatewayStage).build())
                     .build();
             CreateUsagePlanResponse usagePlanResponse = apiGatewayClient.createUsagePlan(usagePlanRequest);
-            UsagePlanDTO usagePlan = new UsagePlanDTO(usagePlanResponse.id(), usagePlanResponse.name(), usagePlanRequest.description());
+            UsagePlanDTO usagePlan = mapper.usagePlanCreateToDto(usagePlanResponse);
             // Associa la chiave API al Usage Plan
             CreateUsagePlanKeyRequest usagePlanKeyRequest = CreateUsagePlanKeyRequest.builder()
                     .usagePlanId(usagePlanResponse.id())
@@ -112,11 +116,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .build();
 
             GetUsagePlanResponse usagePlanResponse = apiGatewayClient.getUsagePlan(usagePlanRequest);
-            UsagePlanDTO usagePlan = new UsagePlanDTO(usagePlanResponse.id(), usagePlanResponse.name(), usagePlanResponse.description());
-
-            log.info("Usage plan: {}", usagePlan);
-
-            return usagePlan;
+            return mapper.usagePlanGetToDto(usagePlanResponse);
         });
     }
 
@@ -128,9 +128,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .patchOperations(buildPatchOperation(usagePlanUpdateDTO))
                     .build();
             UpdateUsagePlanResponse updatedPlan = apiGatewayClient.updateUsagePlan(updateUsagePlanRequest);
-            UsagePlanDTO usagePlan = new UsagePlanDTO(updatedPlan.id(), updatedPlan.name(), updatedPlan.name());
-            log.info("Updated usage plan: {}", usagePlan);
-            return usagePlan;
+            return mapper.usagePlanUpdateToDto(updatedPlan);
+
         }).onFailure().invoke(th -> log.error("Failed to update usage plan with id: {}", usagePlanId, th));
     }
 
@@ -177,7 +176,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             DeleteUsagePlanResponse usagePlanResponse = apiGatewayClient.deleteUsagePlan(usagePlanRequest);
 
             log.info("Usage plan: {}", usagePlanResponse);
-            return null; // Return null to indicate completion with no value
+            return null;
         }).onFailure().invoke(th -> log.error("Failed to delete usage plan with id: {}", usagePlanId, th)).replaceWithVoid();
     }
 }

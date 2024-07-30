@@ -2,6 +2,7 @@ package it.gov.pagopa.atmlayer.service.userservice.service;
 
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 
@@ -9,7 +10,7 @@ import java.util.List;
 
 public interface BankService {
 
-    Uni<BankEntity> insertBank(BankInsertionDTO bankInsertionDTO);
+    Uni<BankPresentationDTO> insertBank(BankInsertionDTO bankInsertionDTO);
 
     Uni<BankEntity> updateBank(BankInsertionDTO bankInsertionDTO);
 

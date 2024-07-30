@@ -4,6 +4,7 @@ import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
@@ -37,10 +38,8 @@ public class BankResource {
     @Path("/insert")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<BankDTO> insert(@RequestBody(required = true) @Valid BankInsertionDTO bankInsertionDTO) {
-        return this.bankService.insertBank(bankInsertionDTO)
-                .onItem()
-                .transformToUni(insertedBank -> Uni.createFrom().item(bankMapper.toDTO(insertedBank)));
+    public Uni<BankPresentationDTO> insert(@RequestBody(required = true) @Valid BankInsertionDTO bankInsertionDTO) {
+        return this.bankService.insertBank(bankInsertionDTO);
     }
 
     @PUT

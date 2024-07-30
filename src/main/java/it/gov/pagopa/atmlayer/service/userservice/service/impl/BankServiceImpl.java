@@ -5,6 +5,7 @@ import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
@@ -41,7 +42,7 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @WithTransaction
-    public Uni<BankEntity> insertBank(BankInsertionDTO bankInsertionDTO) {
+    public Uni<BankPresentationDTO> insertBank(BankInsertionDTO bankInsertionDTO) {
         String acquirerId = bankInsertionDTO.getAcquirerId();
         log.info("Inserting bank with acquirerId : {}", acquirerId);
 
@@ -97,7 +98,9 @@ public class BankServiceImpl implements BankService {
                                     bankEntity.setApiKeyId(apikeyCreated.getId());
                                     bankEntity.setUsagePlanId(associatedUsagePlan.getId());
                                     log.info("bankEntity : {}", bankEntity);
-                                    return bankRepository.persist(bankEntity);
+                                    return bankRepository.persist(bankEntity).onItem().transformToUni(bank -> {
+                                        return Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan));
+                                    });
                                 });
                             });
                         });
