@@ -181,6 +181,7 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
+    @WithTransaction
     public Uni<Void> disable(String acquirerId) {
         return this.findBankById(acquirerId)
                 .onItem().transformToUni(bankEntity -> {
