@@ -148,6 +148,14 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @WithSession
+    public Uni<Optional<BankEntity>> findByAcquirerId(String acquirerId) {
+        return bankRepository.findById(acquirerId)
+                .onItem()
+                .transformToUni(bank -> Uni.createFrom().item(Optional.ofNullable(bank)));
+    }
+
+    @Override
+    @WithSession
     public Uni<List<BankEntity>> getAll(){
         return this.bankRepository.findAll().list();
     }

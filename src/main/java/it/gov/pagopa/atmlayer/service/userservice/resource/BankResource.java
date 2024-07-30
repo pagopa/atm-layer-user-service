@@ -5,6 +5,8 @@ import io.smallrye.mutiny.unchecked.Unchecked;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
+import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
+import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
@@ -13,6 +15,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -71,6 +74,20 @@ public class BankResource {
                         log.info("No Bank Entity meets the applied filters");
                     }
                     return bankMapper.toDtoPaged(pagedList);
+                }));
+    }
+
+    @GET
+    @Path("/{acquirerId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<BankPresentationDTO> getById(@PathParam("acquirerId") String acquirerId) {
+        return this.bankService.findByAcquirerId(acquirerId)
+                .onItem()
+                .transform(Unchecked.function(bank -> {
+                    if (bank.isEmpty()) {
+                        throw new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.BANK_NOT_FOUND);
+                    }
+                    return bankMapper.bankPresentationDTO(bank.get());
                 }));
     }
 

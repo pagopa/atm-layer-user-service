@@ -8,6 +8,7 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BankService {
 
@@ -20,6 +21,8 @@ public interface BankService {
     Uni<PageInfo<BankEntity>> searchBanks(int pageIndex, int pageSize, String acquirerId, String denomination, String clientId);
 
     Uni<BankEntity> findBankById(String acquirerId);
+
+    Uni<Optional<BankEntity>> findByAcquirerId(String acquirerId);
 
     Uni<List<BankEntity>> getAll();
 
