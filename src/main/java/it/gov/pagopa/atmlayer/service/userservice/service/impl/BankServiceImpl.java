@@ -162,39 +162,35 @@ public class BankServiceImpl implements BankService {
 
     @Override
     public Uni<Void> disable(String acquirerId) {
-        return this.bankRepository.findAllById(acquirerId)
-                .onItem().ifNotNull().transformToUni(bankEntity -> {
+        return this.findBankById(acquirerId)
+                .onItem().transformToUni(bankEntity -> {
                     Uni<Void> deleteUsagePlanUni;
-                    BankEntity bankFound = bankEntity.get(0);
-                    if (bankFound.getUsagePlanId() != null) {
-                        deleteUsagePlanUni = apiKeyService.deleteUsagePlan(bankFound.getUsagePlanId());
+
+                    if (bankEntity.getUsagePlanId() != null) {
+                        deleteUsagePlanUni = apiKeyService.deleteUsagePlan(bankEntity.getUsagePlanId());
                     } else {
                         deleteUsagePlanUni = Uni.createFrom().voidItem();
                     }
 
                     return deleteUsagePlanUni
-                            .chain(usagePlan -> apiKeyService.deleteApiKey(bankFound.getApiKeyId()))
-                            .chain(apiKey -> cognitoService.deleteClient(bankFound.getClientId()))
+                            .chain(usagePlan -> apiKeyService.deleteApiKey(bankEntity.getApiKeyId()))
+                            .chain(apiKey -> cognitoService.deleteClient(bankEntity.getClientId()))
                             .chain(bank -> {
-                                bankFound.setEnabled(false);
-                                bankFound.setClientId(null);
-                                bankFound.setUsagePlanId(null);
-                                bankFound.setApiKeyId(null);
-                                return bankRepository.persist(bankFound);
+                                bankEntity.setEnabled(false);
+                                bankEntity.setClientId(null);
+                                bankEntity.setUsagePlanId(null);
+                                bankEntity.setApiKeyId(null);
+                                return bankRepository.persist(bankEntity);
                             })
                             .onFailure().invoke(Unchecked.consumer(th -> {
                                 throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.AWS_COMMUNICATION_ERROR);
                             }))
                             .replaceWithVoid();
                 })
-                .onItem().ifNull().failWith(() -> new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.BANK_NOT_FOUND))
                 .onFailure().invoke(Unchecked.consumer(th -> {
                     throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.ATML_USER_SERVICE_500);
                 }))
                 .replaceWithVoid();
     }
-
-
-
 
 }
