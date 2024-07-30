@@ -12,34 +12,46 @@ public abstract class ApiKeyMapper {
 
     public UsagePlanDTO usagePlanCreateToDto(CreateUsagePlanResponse usagePlan) {
         UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
-        usagePlanDTO.setId(usagePlan.id());
-        usagePlanDTO.setName(usagePlan.name());
-        usagePlanDTO.setLimit(usagePlan.quota().limit());
-        usagePlanDTO.setPeriod(usagePlan.quota().period());
-        usagePlanDTO.setBurstLimit(usagePlan.throttle().burstLimit());
-        usagePlanDTO.setRateLimit(usagePlan.throttle().rateLimit());
+        usagePlanDTO.setId(usagePlan.id() != null ? usagePlan.id() : null);
+        usagePlanDTO.setName(usagePlan.name() != null ? usagePlan.name() : null);
+        if (usagePlan.quota() != null) {
+            usagePlanDTO.setLimit(usagePlan.quota().limit());
+            usagePlanDTO.setPeriod(usagePlan.quota().period());
+        }
+        if (usagePlan.throttle() != null) {
+            usagePlanDTO.setBurstLimit(usagePlan.throttle().burstLimit());
+            usagePlanDTO.setRateLimit(usagePlan.throttle().rateLimit());
+        }
         return usagePlanDTO;
     }
 
     public UsagePlanDTO usagePlanGetToDto(GetUsagePlanResponse usagePlan) {
         UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
-        usagePlanDTO.setId(usagePlan.id());
-        usagePlanDTO.setName(usagePlan.name());
-        usagePlanDTO.setLimit(usagePlan.quota().limit());
-        usagePlanDTO.setPeriod(usagePlan.quota().period());
-        usagePlanDTO.setBurstLimit(usagePlan.throttle().burstLimit());
-        usagePlanDTO.setRateLimit(usagePlan.throttle().rateLimit());
+        usagePlanDTO.setId(usagePlan.id() != null ? usagePlan.id() : null);
+        usagePlanDTO.setName(usagePlan.name() != null ? usagePlan.name() : null);
+        if (usagePlan.quota() != null) {
+            usagePlanDTO.setLimit(usagePlan.quota().limit());
+            usagePlanDTO.setPeriod(usagePlan.quota().period());
+        }
+        if (usagePlan.throttle() != null) {
+            usagePlanDTO.setBurstLimit(usagePlan.throttle().burstLimit());
+            usagePlanDTO.setRateLimit(usagePlan.throttle().rateLimit());
+        }
         return usagePlanDTO;
     }
 
     public UsagePlanDTO usagePlanUpdateToDto(UpdateUsagePlanResponse usagePlan) {
         UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
-        usagePlanDTO.setId(usagePlan.id());
-        usagePlanDTO.setName(usagePlan.name());
-        usagePlanDTO.setLimit(usagePlan.quota().limit());
-        usagePlanDTO.setPeriod(usagePlan.quota().period());
-        usagePlanDTO.setBurstLimit(usagePlan.throttle().burstLimit());
-        usagePlanDTO.setRateLimit(usagePlan.throttle().rateLimit());
+        usagePlanDTO.setId(usagePlan.id() != null ? usagePlan.id() : null);
+        usagePlanDTO.setName(usagePlan.name() != null ? usagePlan.name() : null);
+        if (usagePlan.quota() != null) {
+            usagePlanDTO.setLimit(usagePlan.quota().limit());
+            usagePlanDTO.setPeriod(usagePlan.quota().period());
+        }
+        if (usagePlan.throttle() != null) {
+            usagePlanDTO.setBurstLimit(usagePlan.throttle().burstLimit());
+            usagePlanDTO.setRateLimit(usagePlan.throttle().rateLimit());
+        }
         return usagePlanDTO;
     }
 
