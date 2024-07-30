@@ -20,8 +20,6 @@ public abstract class BankMapper {
 
     public abstract BankDTO toDTO(BankEntity bankEntity);
 
-    public abstract BankPresentationDTO bankPresentationDTO(BankEntity bankEntity);
-
     public List<BankDTO> toDTOList(List<BankEntity> list) {
         return list.stream().map(this::toDTO).toList();
     }

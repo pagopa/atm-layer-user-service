@@ -1,14 +1,19 @@
 package it.gov.pagopa.atmlayer.service.userservice.resource;
 
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.tuples.Tuple4;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
+import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
+import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
+import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
+import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -80,15 +85,8 @@ public class BankResource {
     @GET
     @Path("/{acquirerId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<BankPresentationDTO> getById(@PathParam("acquirerId") String acquirerId) {
-        return this.bankService.findByAcquirerId(acquirerId)
-                .onItem()
-                .transform(Unchecked.function(bank -> {
-                    if (bank.isEmpty()) {
-                        throw new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.BANK_NOT_FOUND);
-                    }
-                    return bankMapper.bankPresentationDTO(bank.get());
-                }));
+    public Uni<BankPresentationDTO> getBank(@PathParam("acquirerId") String acquirerId) {
+        return bankService.findByAcquirerId(acquirerId);
     }
 
     @GET

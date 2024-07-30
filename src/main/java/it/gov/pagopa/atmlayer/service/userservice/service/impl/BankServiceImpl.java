@@ -2,10 +2,8 @@ package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 
 import io.quarkus.hibernate.reactive.panache.common.WithSession;
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
-import io.quarkus.panache.common.Parameters;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.unchecked.Unchecked;
-import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
@@ -56,31 +54,31 @@ public class BankServiceImpl implements BankService {
                         log.error("acquirerId {} already exists", acquirerId);
                         throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
                     }
-                        return cognitoService.generateClient(bankInsertionDTO.getDenomination()).onItem().transformToUni(cognitoCredentials -> {
-                            ClientCredentialsDTO createdClient = cognitoCredentials;
-                            log.info("client credentials created : {}", createdClient);
-                            return apiKeyService.createApiKey(createdClient.getClientName()).onItem().transformToUni(apiKey -> {
-                                ApiKeyDTO apikeyCreated = apiKey;
-                                log.info("apikey created : {}", apikeyCreated);
-                                return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
-                                    log.info("associatedUsagePlan created : {}", associatedUsagePlan);
-                                    BankEntity bankEntity;
-                                    if (!findResult.isEmpty()) {
-                                        bankEntity = findResult.get(0);
-                                        bankEntity.setEnabled(true);
-                                    } else {
-                                        bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
-                                    }
-                                        bankEntity.setClientId(createdClient.getClientId());
-                                        bankEntity.setApiKeyId(apikeyCreated.getId());
-                                        bankEntity.setUsagePlanId(associatedUsagePlan.getId());
-                                        log.info("bankEntity : {}", bankEntity);
-                                        return bankRepository.persist(bankEntity)
-                                                .onItem()
-                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan)));
-                                });
+                    return cognitoService.generateClient(bankInsertionDTO.getDenomination()).onItem().transformToUni(cognitoCredentials -> {
+                        ClientCredentialsDTO createdClient = cognitoCredentials;
+                        log.info("client credentials created : {}", createdClient);
+                        return apiKeyService.createApiKey(createdClient.getClientName()).onItem().transformToUni(apiKey -> {
+                            ApiKeyDTO apikeyCreated = apiKey;
+                            log.info("apikey created : {}", apikeyCreated);
+                            return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
+                                log.info("associatedUsagePlan created : {}", associatedUsagePlan);
+                                BankEntity bankEntity;
+                                if (!findResult.isEmpty()) {
+                                    bankEntity = findResult.get(0);
+                                    bankEntity.setEnabled(true);
+                                } else {
+                                    bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
+                                }
+                                bankEntity.setClientId(createdClient.getClientId());
+                                bankEntity.setApiKeyId(apikeyCreated.getId());
+                                bankEntity.setUsagePlanId(associatedUsagePlan.getId());
+                                log.info("bankEntity : {}", bankEntity);
+                                return bankRepository.persist(bankEntity)
+                                        .onItem()
+                                        .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan)));
                             });
                         });
+                    });
                 }));
     }
 
@@ -109,6 +107,36 @@ public class BankServiceImpl implements BankService {
                         .transformToUni(clientDto ->
                                 Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apiKeyDto, clientDto, usagePlanDto))));
     }
+
+    @Override
+    @WithSession
+    public Uni<BankPresentationDTO> findByAcquirerId(String acquirerId) {
+        return bankRepository.findById(acquirerId)
+                .onItem()
+                .transformToUni(bankEntity -> {
+                    if (bankEntity == null) {
+                        throw new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.BANK_NOT_FOUND);
+                    }
+                    return gatherAdditionalInfo(bankEntity);
+                });
+    }
+
+    private Uni<BankPresentationDTO> gatherAdditionalInfo(BankEntity bankEntity) {
+        return apiKeyService.getUsagePlan(bankEntity.getUsagePlanId())
+                .onItem()
+                .transformToUni(usagePlanDto ->
+                        apiKeyService.getApiKey(bankEntity.getApiKeyId())
+                                .onItem()
+                                .transformToUni(apiKeyDto ->
+                                        cognitoService.getClientCredentials(bankEntity.getClientId())
+                                                .onItem()
+                                                .transform(clientDto ->
+                                                        bankMapper.toPresentationDTO(bankEntity, apiKeyDto, clientDto, usagePlanDto)
+                                                )
+                                )
+                );
+    }
+
 
     @WithTransaction
     public Uni<BankEntity> setDisabledBankAttributes(String acquirerId) {
@@ -148,15 +176,7 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @WithSession
-    public Uni<Optional<BankEntity>> findByAcquirerId(String acquirerId) {
-        return bankRepository.findById(acquirerId)
-                .onItem()
-                .transformToUni(bank -> Uni.createFrom().item(Optional.ofNullable(bank)));
-    }
-
-    @Override
-    @WithSession
-    public Uni<List<BankEntity>> getAll(){
+    public Uni<List<BankEntity>> getAll() {
         return this.bankRepository.findAll().list();
     }
 

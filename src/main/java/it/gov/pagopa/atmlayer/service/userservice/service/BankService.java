@@ -22,7 +22,7 @@ public interface BankService {
 
     Uni<BankEntity> findBankById(String acquirerId);
 
-    Uni<Optional<BankEntity>> findByAcquirerId(String acquirerId);
+    Uni<BankPresentationDTO> findByAcquirerId(String acquirerId);
 
     Uni<List<BankEntity>> getAll();
 
