@@ -13,7 +13,7 @@ public interface BankService {
 
     Uni<BankPresentationDTO> insertBank(BankInsertionDTO bankInsertionDTO);
 
-    Uni<BankEntity> updateBank(BankInsertionDTO bankInsertionDTO);
+    Uni<BankPresentationDTO> updateBank(BankInsertionDTO bankInsertionDTO);
 
     Uni<Void> disable(String acquirerId);
 

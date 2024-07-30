@@ -46,10 +46,8 @@ public class BankResource {
     @Path("/update")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<BankDTO> update(@RequestBody(required = true) @Valid BankInsertionDTO bankInsertionDTO) {
-        return bankService.updateBank(bankInsertionDTO)
-                .onItem()
-                .transformToUni(updatedBank -> Uni.createFrom().item(bankMapper.toDTO(updatedBank)));
+    public Uni<BankPresentationDTO> update(@RequestBody(required = true) @Valid BankInsertionDTO bankInsertionDTO) {
+        return bankService.updateBank(bankInsertionDTO);
     }
 
     @POST

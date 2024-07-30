@@ -13,5 +13,4 @@ public class UsagePlanUpdateDTO {
     private Integer burstLimit;
     private Integer quotaLimit;
     private QuotaPeriodType quotaPeriod;
-    private String name;
 }

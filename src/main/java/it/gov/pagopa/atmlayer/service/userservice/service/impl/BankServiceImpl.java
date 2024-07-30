@@ -15,6 +15,8 @@ import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
+import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
+import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.repository.BankRepository;
 import it.gov.pagopa.atmlayer.service.userservice.service.ApiKeyService;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
@@ -84,19 +86,28 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @WithTransaction
-    public Uni<BankEntity> updateBank(BankInsertionDTO bankInsertionDTO) {
-//        String acquirerId = bankInsertionDTO.getAcquirerId();
-//        log.info("Updating bank with acquirerId : {}", acquirerId);
-//
-//        return this.findBankById(bankInsertionDTO.getAcquirerId())
-//                .onItem()
-//                .transformToUni(Unchecked.function(bankFound -> {
-//                    bankFound.setDenomination(bankInsertionDTO.getDenomination());
-//                    bankFound.setApiKeyId(bankInsertionDTO.getApiKeyId());
-//                    bankFound.setUsagePlanId(bankFound.getUsagePlanId());
-//                    return bankRepository.persist(bankFound);
-//                }));
-        return null;
+    public Uni<BankPresentationDTO> updateBank(BankInsertionDTO input) {
+        String acquirerId = input.getAcquirerId();
+        log.info("Updating bank with acquirerId : {}", acquirerId);
+        return bankRepository.findById(input.getAcquirerId())
+                .onItem()
+                .transformToUni(Unchecked.function(bankToUpdate -> {
+                    if (bankToUpdate == null) {
+                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_NOT_FOUND);
+                    }
+                    return apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
+                            .onItem()
+                            .transformToUni(usagePlan -> getStaticAWSInfo(bankToUpdate, usagePlan));
+                }));
+    }
+
+    public Uni<BankPresentationDTO> getStaticAWSInfo(BankEntity bankEntity, UsagePlanDTO usagePlanDto) {
+        return apiKeyService.getApiKey(bankEntity.getApiKeyId())
+                .onItem()
+                .transformToUni(apiKeyDto -> cognitoService.getClientCredentials(bankEntity.getClientId())
+                        .onItem()
+                        .transformToUni(clientDto ->
+                                Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apiKeyDto, clientDto, usagePlanDto))));
     }
 
     @WithTransaction
