@@ -198,9 +198,9 @@ public class BankServiceImpl implements BankService {
                             .chain(apiKey -> cognitoService.deleteClient(bankEntity.getClientId()))
                             .chain(client -> {
                                 bankEntity.setEnabled(false);
-                                bankEntity.setClientId(null);
-                                bankEntity.setUsagePlanId(null);
-                                bankEntity.setApiKeyId(null);
+                                bankEntity.setClientId("");
+                                bankEntity.setUsagePlanId("");
+                                bankEntity.setApiKeyId("");
                                 return bankRepository.persist(bankEntity)
                                         .onFailure().invoke(Unchecked.consumer(th -> {
                                             throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.DATABASE_TRANSACTION_ERROR);
