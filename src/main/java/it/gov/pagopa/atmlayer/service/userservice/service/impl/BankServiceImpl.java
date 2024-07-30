@@ -2,6 +2,7 @@ package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 
 import io.quarkus.hibernate.reactive.panache.common.WithSession;
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
+import io.quarkus.panache.common.Parameters;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
@@ -60,6 +61,20 @@ public class BankServiceImpl implements BankService {
                                 log.info("apikey created : {}", apikeyCreated);
                                 return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
                                     log.info("associatedUsagePlan created : {}", associatedUsagePlan);
+                                    if (foundBank != null) {
+                                        foundBank.setEnabled(true);
+                                        foundBank.setClientId(createdClient.getClientId());
+                                        foundBank.setApiKeyId(apikeyCreated.getId());
+                                        foundBank.setUsagePlanId(associatedUsagePlan.getId());
+                                        Parameters parameters = new Parameters();
+                                        parameters.and("enabled", foundBank.getEnabled());
+                                        parameters.and("clientId", foundBank.getClientId());
+                                        parameters.and("apiKeyId", foundBank.getApiKeyId());
+                                        parameters.and("acquirerId", foundBank.getAcquirerId());
+                                        return bankRepository.update(foundBank.getAcquirerId(), parameters)
+                                                .onItem()
+                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(foundBank, apikeyCreated, createdClient, associatedUsagePlan)));
+                                    } else {
                                         BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
                                         bankEntity.setClientId(createdClient.getClientId());
                                         bankEntity.setApiKeyId(apikeyCreated.getId());
@@ -68,7 +83,7 @@ public class BankServiceImpl implements BankService {
                                         return bankRepository.persist(bankEntity)
                                                 .onItem()
                                                 .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan)));
-
+                                    }
                                 });
                             });
                         });
