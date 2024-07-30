@@ -1,6 +1,7 @@
 package it.gov.pagopa.atmlayer.service.userservice.mapper;
 
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -9,8 +10,8 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-07-30T15:19:02+0200",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.3 (Oracle Corporation)"
+    date = "2024-07-30T15:37:36+0200",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.8 (Oracle Corporation)"
 )
 @ApplicationScoped
 public class BankMapperImpl extends BankMapper {
@@ -32,6 +33,25 @@ public class BankMapperImpl extends BankMapper {
         bankDTO.lastUpdatedAt( bankEntity.getLastUpdatedAt() );
 
         return bankDTO.build();
+    }
+
+    @Override
+    public BankPresentationDTO bankPresentationDTO(BankEntity bankEntity) {
+        if ( bankEntity == null ) {
+            return null;
+        }
+
+        BankPresentationDTO bankPresentationDTO = new BankPresentationDTO();
+
+        bankPresentationDTO.setAcquirerId( bankEntity.getAcquirerId() );
+        bankPresentationDTO.setDenomination( bankEntity.getDenomination() );
+        bankPresentationDTO.setClientId( bankEntity.getClientId() );
+        bankPresentationDTO.setApiKeyId( bankEntity.getApiKeyId() );
+        bankPresentationDTO.setUsagePlanId( bankEntity.getUsagePlanId() );
+        bankPresentationDTO.setCreatedAt( bankEntity.getCreatedAt() );
+        bankPresentationDTO.setLastUpdatedAt( bankEntity.getLastUpdatedAt() );
+
+        return bankPresentationDTO;
     }
 
     @Override
