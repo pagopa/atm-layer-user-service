@@ -5,6 +5,7 @@ import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.quarkus.panache.common.Parameters;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.unchecked.Unchecked;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
@@ -43,50 +44,57 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @WithTransaction
-    public Uni<BankPresentationDTO> insertBank(BankInsertionDTO bankInsertionDTO) {
+    public Uni<BankDTO> insertBank(BankInsertionDTO bankInsertionDTO) {
         String acquirerId = bankInsertionDTO.getAcquirerId();
         log.info("Inserting bank with acquirerId : {}", acquirerId);
         return this.bankRepository.findById(bankInsertionDTO.getAcquirerId())
                 .onItem()
                 .transformToUni(Unchecked.function(foundBank -> {
-                    if (foundBank != null && Boolean.TRUE.equals(foundBank.getEnabled())) {
-                        log.error("acquirerId {} already exists", acquirerId);
-                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
-                    }
-                        return cognitoService.generateClient(bankInsertionDTO.getDenomination()).onItem().transformToUni(cognitoCredentials -> {
-                            ClientCredentialsDTO createdClient = cognitoCredentials;
-                            log.info("client credentials created : {}", createdClient);
-                            return apiKeyService.createApiKey(createdClient.getClientName()).onItem().transformToUni(apiKey -> {
-                                ApiKeyDTO apikeyCreated = apiKey;
-                                log.info("apikey created : {}", apikeyCreated);
-                                return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
-                                    log.info("associatedUsagePlan created : {}", associatedUsagePlan);
-                                    if (foundBank != null) {
-                                        foundBank.setEnabled(true);
-                                        foundBank.setClientId(createdClient.getClientId());
-                                        foundBank.setApiKeyId(apikeyCreated.getId());
-                                        foundBank.setUsagePlanId(associatedUsagePlan.getId());
-                                        Parameters parameters = new Parameters();
-                                        parameters.and("enabled", foundBank.getEnabled());
-                                        parameters.and("clientId", foundBank.getClientId());
-                                        parameters.and("apiKeyId", foundBank.getApiKeyId());
-                                        parameters.and("acquirerId", foundBank.getAcquirerId());
-                                        return bankRepository.update(foundBank.getAcquirerId(), parameters)
-                                                .onItem()
-                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(foundBank, apikeyCreated, createdClient, associatedUsagePlan)));
-                                    } else {
-                                        BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
-                                        bankEntity.setClientId(createdClient.getClientId());
-                                        bankEntity.setApiKeyId(apikeyCreated.getId());
-                                        bankEntity.setUsagePlanId(associatedUsagePlan.getId());
-                                        log.info("bankEntity : {}", bankEntity);
-                                        return bankRepository.persist(bankEntity)
-                                                .onItem()
-                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan)));
-                                    }
-                                });
-                            });
-                        });
+                    foundBank.setEnabled(true);
+                    foundBank.setClientId("updated_client");
+                    foundBank.setApiKeyId("updated_apiKey");
+                    foundBank.setUsagePlanId("updated_plan");
+                    return bankRepository.persist(foundBank)
+                            .onItem()
+                            .transformToUni(updatedBank -> Uni.createFrom().item(bankMapper.toDTO(updatedBank)));
+//                    if (foundBank != null && Boolean.TRUE.equals(foundBank.getEnabled())) {
+//                        log.error("acquirerId {} already exists", acquirerId);
+//                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
+//                    }
+//                        return cognitoService.generateClient(bankInsertionDTO.getDenomination()).onItem().transformToUni(cognitoCredentials -> {
+//                            ClientCredentialsDTO createdClient = cognitoCredentials;
+//                            log.info("client credentials created : {}", createdClient);
+//                            return apiKeyService.createApiKey(createdClient.getClientName()).onItem().transformToUni(apiKey -> {
+//                                ApiKeyDTO apikeyCreated = apiKey;
+//                                log.info("apikey created : {}", apikeyCreated);
+//                                return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
+//                                    log.info("associatedUsagePlan created : {}", associatedUsagePlan);
+//                                    if (foundBank != null) {
+//                                        foundBank.setEnabled(true);
+//                                        foundBank.setClientId(createdClient.getClientId());
+//                                        foundBank.setApiKeyId(apikeyCreated.getId());
+//                                        foundBank.setUsagePlanId(associatedUsagePlan.getId());
+//                                        Parameters parameters = new Parameters();
+//                                        parameters.and("enabled", foundBank.getEnabled());
+//                                        parameters.and("clientId", foundBank.getClientId());
+//                                        parameters.and("apiKeyId", foundBank.getApiKeyId());
+//                                        parameters.and("acquirerId", foundBank.getAcquirerId());
+//                                        return bankRepository.update(foundBank.getAcquirerId(), parameters)
+//                                                .onItem()
+//                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(foundBank, apikeyCreated, createdClient, associatedUsagePlan)));
+//                                    } else {
+//                                        BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
+//                                        bankEntity.setClientId(createdClient.getClientId());
+//                                        bankEntity.setApiKeyId(apikeyCreated.getId());
+//                                        bankEntity.setUsagePlanId(associatedUsagePlan.getId());
+//                                        log.info("bankEntity : {}", bankEntity);
+//                                        return bankRepository.persist(bankEntity)
+//                                                .onItem()
+//                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan)));
+//                                    }
+//                                });
+//                            });
+//                        });
                 }));
     }
 

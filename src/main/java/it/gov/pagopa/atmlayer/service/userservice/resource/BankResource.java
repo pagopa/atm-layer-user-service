@@ -38,7 +38,7 @@ public class BankResource {
     @Path("/insert")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<BankPresentationDTO> insert(@RequestBody(required = true) @Valid BankInsertionDTO bankInsertionDTO) {
+    public Uni<BankDTO> insert(@RequestBody(required = true) @Valid BankInsertionDTO bankInsertionDTO) {
         return this.bankService.insertBank(bankInsertionDTO);
     }
 
