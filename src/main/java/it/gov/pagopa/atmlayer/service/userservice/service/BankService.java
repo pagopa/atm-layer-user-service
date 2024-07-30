@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface BankService {
 
-    Uni<BankDTO> insertBank(BankInsertionDTO bankInsertionDTO);
+    Uni<BankPresentationDTO> insertBank(BankInsertionDTO bankInsertionDTO);
 
     Uni<BankEntity> updateBank(BankInsertionDTO bankInsertionDTO);
 
