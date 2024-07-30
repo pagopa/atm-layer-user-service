@@ -99,13 +99,6 @@ public class BankServiceImpl implements BankService {
         return null;
     }
 
-    @Override
-    public Uni<Void> disable(String acquirerId) {
-        return this.setDisabledBankAttributes(acquirerId)
-                .onItem()
-                .transformToUni(disabledBank -> Uni.createFrom().voidItem());
-    }
-
     @WithTransaction
     public Uni<BankEntity> setDisabledBankAttributes(String acquirerId) {
         return this.findBankById(acquirerId)
@@ -147,5 +140,26 @@ public class BankServiceImpl implements BankService {
     public Uni<List<BankEntity>> getAll(){
         return this.bankRepository.findAll().list();
     }
+
+    @Override
+    public Uni<Void> disable(String acquirerId) {
+        return this.bankRepository.findById(acquirerId)
+                .onItem().ifNotNull().transformToUni(bankEntity -> {
+                    return apiKeyService.deleteUsagePlan(bankEntity.getUsagePlanId())
+                            .chain(usagePlan -> apiKeyService.deleteApiKey(bankEntity.getApiKeyId()))
+                            .chain(apiKey -> cognitoService.deleteClient(bankEntity.getClientId()))
+                            .onFailure().invoke(Unchecked.consumer(th -> {
+                                throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.AWS_COMMUNICATION_ERROR);
+                            }))
+                            .replaceWithVoid();
+                })
+                .onItem().ifNull().failWith(() -> new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.BANK_NOT_FOUND))
+                .onFailure().invoke(Unchecked.consumer(th -> {
+                    throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.ATML_USER_SERVICE_500);
+                }))
+                .replaceWithVoid();
+    }
+
+
 
 }

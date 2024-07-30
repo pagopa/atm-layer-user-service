@@ -46,7 +46,9 @@ public abstract class BankMapper {
         bankPresentationDTO.setPeriod(usagePlanDTO.getPeriod());
         bankPresentationDTO.setBurstLimit(usagePlanDTO.getBurstLimit());
         bankPresentationDTO.setRateLimit(usagePlanDTO.getRateLimit());
+        bankPresentationDTO.setCreatedAt(bankEntity.getCreatedAt());
+        bankPresentationDTO.setLastUpdatedAt(bankEntity.getLastUpdatedAt());
         return bankPresentationDTO;
-    };
+    }
 
 }

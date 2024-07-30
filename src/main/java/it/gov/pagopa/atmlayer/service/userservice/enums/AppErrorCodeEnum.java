@@ -26,7 +26,8 @@ public enum AppErrorCodeEnum {
     ALL_FIELDS_ARE_BLANK("ATMLU_4000013", "Tutti i campi sono vuoti", BLANK_FIELDS),
     BANK_WITH_THE_SAME_ID_ALREADY_EXISTS("ATMLU_4000014", "Una banca con lo stesso acquirerId esiste già", CONSTRAINT_VIOLATION),
     BANK_NOT_FOUND("ATMLU_4000015", "Non esiste tale acquirerId nel database", NON_EXISTING_ACQUIRER_ID),
-    RATEMIN_GREATER_THAN_RATEMAX("ATMLU_4000016", "rateMax deve essere maggiore di rateMin", CONSTRAINT_VIOLATION);
+    RATEMIN_GREATER_THAN_RATEMAX("ATMLU_4000016", "rateMax deve essere maggiore di rateMin", CONSTRAINT_VIOLATION),
+    AWS_COMMUNICATION_ERROR("ATMLU_4000017", "Errore di comunicazione con AWS", COMMUNICATION_ERROR);
 
     private final String errorCode;
     private final String errorMessage;
