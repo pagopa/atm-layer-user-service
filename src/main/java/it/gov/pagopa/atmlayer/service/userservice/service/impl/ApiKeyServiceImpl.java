@@ -87,22 +87,33 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     @Override
     public Uni<UsagePlanDTO> createUsagePlan(BankInsertionDTO bankInsertionDTO, String apiKeyId) {
         return Uni.createFrom().item(() -> {
-            CreateUsagePlanRequest usagePlanRequest = CreateUsagePlanRequest.builder()
-                    .name(bankInsertionDTO.getDenomination() + "-plan")
-                    .description("Usage plan for " + bankInsertionDTO.getDenomination())
-                    .quota((bankInsertionDTO.getLimit() != null && bankInsertionDTO.getPeriod() != null) ? q -> q.limit(bankInsertionDTO.getLimit()).period(bankInsertionDTO.getPeriod()) : null)
-                    .throttle((bankInsertionDTO.getBurstLimit() != null && bankInsertionDTO.getRateLimit() != null) ? t -> t.burstLimit(bankInsertionDTO.getBurstLimit()).rateLimit(bankInsertionDTO.getRateLimit()) : null)
-                    .apiStages(ApiStage.builder().apiId(apiGatewayId).stage(apiGatewayStage).build())
-                    .build();
+            CreateUsagePlanRequest.Builder usagePlanRequestBuilder = CreateUsagePlanRequest.builder()
+                    .name(Optional.ofNullable(bankInsertionDTO.getDenomination()).orElse("") + "-plan")
+                    .description("Usage plan for " + Optional.ofNullable(bankInsertionDTO.getDenomination()).orElse(""));
+
+            if (bankInsertionDTO.getLimit() != null && bankInsertionDTO.getPeriod() != null) {
+                usagePlanRequestBuilder.quota(q -> q.limit(bankInsertionDTO.getLimit()).period(bankInsertionDTO.getPeriod()));
+            }
+
+            if (bankInsertionDTO.getBurstLimit() != null && bankInsertionDTO.getRateLimit() != null) {
+                usagePlanRequestBuilder.throttle(t -> t.burstLimit(bankInsertionDTO.getBurstLimit()).rateLimit(bankInsertionDTO.getRateLimit()));
+            }
+
+            usagePlanRequestBuilder.apiStages(ApiStage.builder().apiId(apiGatewayId).stage(apiGatewayStage).build());
+
+            CreateUsagePlanRequest usagePlanRequest = usagePlanRequestBuilder.build();
+
             CreateUsagePlanResponse usagePlanResponse = apiGatewayClient.createUsagePlan(usagePlanRequest);
+
             UsagePlanDTO usagePlan = mapper.usagePlanCreateToDto(usagePlanResponse);
-            // Associa la chiave API al Usage Plan
+
             CreateUsagePlanKeyRequest usagePlanKeyRequest = CreateUsagePlanKeyRequest.builder()
                     .usagePlanId(usagePlanResponse.id())
                     .keyId(apiKeyId)
                     .keyType("API_KEY")
                     .build();
             apiGatewayClient.createUsagePlanKey(usagePlanKeyRequest);
+
             log.info("Usage plan: {}", usagePlan);
             return usagePlan;
         });
