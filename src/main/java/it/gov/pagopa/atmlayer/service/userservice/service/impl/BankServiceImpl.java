@@ -102,7 +102,7 @@ public class BankServiceImpl implements BankService {
     }
 
     public Uni<BankPresentationDTO> getStaticAWSInfo(BankEntity bankEntity, UsagePlanDTO usagePlanDto) {
-        return apiKeyService.getApiKey(bankEntity.getApiKeyId())
+        return apiKeyService.getApiKey(bankEntity.getDenomination())
                 .onItem()
                 .transformToUni(apiKeyDto -> cognitoService.getClientCredentials(bankEntity.getClientId())
                         .onItem()
