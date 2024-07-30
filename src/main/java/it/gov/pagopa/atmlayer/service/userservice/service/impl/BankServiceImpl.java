@@ -145,9 +145,24 @@ public class BankServiceImpl implements BankService {
     public Uni<Void> disable(String acquirerId) {
         return this.bankRepository.findById(acquirerId)
                 .onItem().ifNotNull().transformToUni(bankEntity -> {
-                    return apiKeyService.deleteUsagePlan(bankEntity.getUsagePlanId())
+                    Uni<Void> deleteUsagePlanUni;
+
+                    if (bankEntity.getUsagePlanId() != null) {
+                        deleteUsagePlanUni = apiKeyService.deleteUsagePlan(bankEntity.getUsagePlanId());
+                    } else {
+                        deleteUsagePlanUni = Uni.createFrom().voidItem();
+                    }
+
+                    return deleteUsagePlanUni
                             .chain(usagePlan -> apiKeyService.deleteApiKey(bankEntity.getApiKeyId()))
                             .chain(apiKey -> cognitoService.deleteClient(bankEntity.getClientId()))
+                            .chain(bank -> {
+                                bankEntity.setEnabled(false);
+                                bankEntity.setClientId(null);
+                                bankEntity.setUsagePlanId(null);
+                                bankEntity.setApiKeyId(null);
+                                return bankRepository.persist(bankEntity);
+                            })
                             .onFailure().invoke(Unchecked.consumer(th -> {
                                 throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.AWS_COMMUNICATION_ERROR);
                             }))
@@ -159,6 +174,7 @@ public class BankServiceImpl implements BankService {
                 }))
                 .replaceWithVoid();
     }
+
 
 
 
