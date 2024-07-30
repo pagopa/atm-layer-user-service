@@ -125,7 +125,7 @@ public class BankServiceImpl implements BankService {
         return apiKeyService.getUsagePlan(bankEntity.getUsagePlanId())
                 .onItem()
                 .transformToUni(usagePlanDto ->
-                        apiKeyService.getApiKey(bankEntity.getApiKeyId())
+                        apiKeyService.getApiKey(bankEntity.getDenomination())
                                 .onItem()
                                 .transformToUni(apiKeyDto ->
                                         cognitoService.getClientCredentials(bankEntity.getClientId())
