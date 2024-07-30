@@ -38,7 +38,7 @@ public class BankRepository implements PanacheRepositoryBase<BankEntity, String>
 
 
     public Uni<List<BankEntity>> findAllById(String acquirerId) {
-        String sql = "SELECT * FROM banks WHERE acquirer_id = :acquirerId order by last_updated_at DESC";
+        String sql = "SELECT * FROM bank WHERE acquirer_id = :acquirerId order by last_updated_at DESC";
         return Panache.getSession()
                 .onItem()
                 .transformToUni(session ->
