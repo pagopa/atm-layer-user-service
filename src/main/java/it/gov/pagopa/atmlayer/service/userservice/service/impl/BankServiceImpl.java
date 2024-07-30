@@ -45,36 +45,9 @@ public class BankServiceImpl implements BankService {
     public Uni<BankPresentationDTO> insertBank(BankInsertionDTO bankInsertionDTO) {
         String acquirerId = bankInsertionDTO.getAcquirerId();
         log.info("Inserting bank with acquirerId : {}", acquirerId);
-
         return this.bankRepository.findById(bankInsertionDTO.getAcquirerId())
                 .onItem()
                 .transformToUni(Unchecked.function(foundBank -> {
-
-//                    if (foundBankList.isEmpty()) {
-//                        cognitoService.generateClient(bankInsertionDTO.getDenomination());
-//                        String clientId = bankInsertionDTO.getDenomination();
-//                        BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
-//                        bankEntity.setClientId(clientId);
-//                        bankEntity.setApiKeyId(bankInsertionDTO.getApiKeyId());
-//                        if(bankInsertionDTO.getUsagePlanId() != null) {
-//                            bankEntity.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
-//                        }
-//                        return bankRepository.persist(bankEntity);
-//                    }
-//
-//                    BankEntity foundBank = foundBankList.get(0);
-//                    if (Boolean.TRUE.equals(foundBank.getEnabled())) {
-//                        log.error("acquirerId {} already exists", acquirerId);
-//                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
-//                    }
-//                    foundBank.setEnabled(true);
-//                    foundBank.setDenomination(bankInsertionDTO.getDenomination());
-//                    foundBank.setApiKeyId(bankInsertionDTO.getApiKeyId());
-//                    if(bankInsertionDTO.getUsagePlanId() != null) {
-//                        foundBank.setUsagePlanId(bankInsertionDTO.getUsagePlanId());
-//                    }
-//                    return bankRepository.persist(foundBank);
-//                }));
                     if (foundBank != null && Boolean.TRUE.equals(foundBank.getEnabled())) {
                         log.error("acquirerId {} already exists", acquirerId);
                         throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
@@ -87,15 +60,6 @@ public class BankServiceImpl implements BankService {
                                 log.info("apikey created : {}", apikeyCreated);
                                 return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
                                     log.info("associatedUsagePlan created : {}", associatedUsagePlan);
-                                    if (foundBank != null) {
-                                        foundBank.setEnabled(true);
-                                        foundBank.setClientId(createdClient.getClientId());
-                                        foundBank.setApiKeyId(apikeyCreated.getId());
-                                        foundBank.setUsagePlanId(associatedUsagePlan.getId());
-                                        return bankRepository.persist(foundBank)
-                                                .onItem()
-                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(foundBank, apikeyCreated, createdClient, associatedUsagePlan)));
-                                    } else {
                                         BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
                                         bankEntity.setClientId(createdClient.getClientId());
                                         bankEntity.setApiKeyId(apikeyCreated.getId());
@@ -104,7 +68,7 @@ public class BankServiceImpl implements BankService {
                                         return bankRepository.persist(bankEntity)
                                                 .onItem()
                                                 .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan)));
-                                    }
+
                                 });
                             });
                         });
