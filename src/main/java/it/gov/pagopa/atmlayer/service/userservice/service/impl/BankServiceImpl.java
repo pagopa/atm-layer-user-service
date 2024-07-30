@@ -87,20 +87,24 @@ public class BankServiceImpl implements BankService {
                                 log.info("apikey created : {}", apikeyCreated);
                                 return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
                                     log.info("associatedUsagePlan created : {}", associatedUsagePlan);
-                                    BankEntity bankEntity;
                                     if (foundBank != null) {
                                         foundBank.setEnabled(true);
-                                        bankEntity = foundBank;
+                                        foundBank.setClientId(createdClient.getClientId());
+                                        foundBank.setApiKeyId(apikeyCreated.getId());
+                                        foundBank.setUsagePlanId(associatedUsagePlan.getId());
+                                        return bankRepository.persist(foundBank)
+                                                .onItem()
+                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(foundBank, apikeyCreated, createdClient, associatedUsagePlan)));
                                     } else {
-                                        bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
+                                        BankEntity bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
+                                        bankEntity.setClientId(createdClient.getClientId());
+                                        bankEntity.setApiKeyId(apikeyCreated.getId());
+                                        bankEntity.setUsagePlanId(associatedUsagePlan.getId());
+                                        log.info("bankEntity : {}", bankEntity);
+                                        return bankRepository.persist(bankEntity)
+                                                .onItem()
+                                                .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan)));
                                     }
-                                    bankEntity.setClientId(createdClient.getClientId());
-                                    bankEntity.setApiKeyId(apikeyCreated.getId());
-                                    bankEntity.setUsagePlanId(associatedUsagePlan.getId());
-                                    log.info("bankEntity : {}", bankEntity);
-                                    return bankRepository.persist(bankEntity).onItem().transformToUni(bank -> {
-                                        return Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan));
-                                    });
                                 });
                             });
                         });
