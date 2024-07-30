@@ -9,11 +9,12 @@ import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 
 import java.util.List;
 
-
+@Slf4j
 @Mapper(componentModel = "cdi")
 public abstract class BankMapper {
 
@@ -36,6 +37,7 @@ public abstract class BankMapper {
     public abstract PageInfo<BankDTO> toDtoPaged(PageInfo<BankEntity> pagedBanks);
 
     public BankPresentationDTO toPresentationDTO(BankEntity bankEntity, ApiKeyDTO apiKeyDTO, ClientCredentialsDTO clientCredentialsDTO, UsagePlanDTO usagePlanDTO) {
+        log.info("Mapping BankEntity: {} , ApiKeyDTO: {} , client: {} , usagePlan: {}", bankEntity, apiKeyDTO, clientCredentialsDTO, usagePlanDTO);
         BankPresentationDTO bankPresentationDTO = new BankPresentationDTO();
         bankPresentationDTO.setAcquirerId(bankEntity.getAcquirerId());
         bankPresentationDTO.setDenomination(bankEntity.getDenomination());
