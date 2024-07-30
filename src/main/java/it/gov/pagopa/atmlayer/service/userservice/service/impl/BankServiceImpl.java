@@ -175,16 +175,16 @@ public class BankServiceImpl implements BankService {
                     return deleteUsagePlanUni
                             .chain(usagePlan -> apiKeyService.deleteApiKey(bankEntity.getApiKeyId()))
                             .chain(apiKey -> cognitoService.deleteClient(bankEntity.getClientId()))
-                            .chain(bank -> {
+                            .chain(client -> {
                                 bankEntity.setEnabled(false);
                                 bankEntity.setClientId(null);
                                 bankEntity.setUsagePlanId(null);
                                 bankEntity.setApiKeyId(null);
-                                return bankRepository.persist(bankEntity);
+                                return bankRepository.persist(bankEntity)
+                                        .onFailure().invoke(Unchecked.consumer(th -> {
+                                            throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.DATABASE_TRANSACTION_ERROR);
+                                        }));
                             })
-                            .onFailure().invoke(Unchecked.consumer(th -> {
-                                throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.AWS_COMMUNICATION_ERROR);
-                            }))
                             .replaceWithVoid();
                 })
                 .onFailure().invoke(Unchecked.consumer(th -> {
@@ -192,5 +192,7 @@ public class BankServiceImpl implements BankService {
                 }))
                 .replaceWithVoid();
     }
+
+
 
 }
