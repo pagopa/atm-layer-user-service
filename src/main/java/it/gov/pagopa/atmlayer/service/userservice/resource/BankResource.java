@@ -6,6 +6,7 @@ import io.smallrye.mutiny.unchecked.Unchecked;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
@@ -54,8 +55,8 @@ public class BankResource {
     @Path("/update")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<BankPresentationDTO> update(@RequestBody(required = true) @Valid BankInsertionDTO bankInsertionDTO) {
-        return bankService.updateBank(bankInsertionDTO);
+    public Uni<BankPresentationDTO> update(@RequestBody(required = true) @Valid BankUpdateDTO bankUpdateDTO) {
+        return bankService.updateBank(bankUpdateDTO);
     }
 
     @POST

@@ -4,6 +4,7 @@ import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 
@@ -14,7 +15,7 @@ public interface BankService {
 
     Uni<BankPresentationDTO> insertBank(BankInsertionDTO bankInsertionDTO);
 
-    Uni<BankPresentationDTO> updateBank(BankInsertionDTO bankInsertionDTO);
+    Uni<BankPresentationDTO> updateBank(BankUpdateDTO bankUpdateDTO);
 
     Uni<Void> disable(String acquirerId);
 

@@ -6,6 +6,7 @@ import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
@@ -84,7 +85,7 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @WithTransaction
-    public Uni<BankPresentationDTO> updateBank(BankInsertionDTO input) {
+    public Uni<BankPresentationDTO> updateBank(BankUpdateDTO input) {
         String acquirerId = input.getAcquirerId();
         log.info("Updating bank with acquirerId : {}", acquirerId);
         return bankRepository.findById(input.getAcquirerId())
