@@ -2,6 +2,8 @@ package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
+import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
+import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.ApiKeyMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
@@ -9,6 +11,7 @@ import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.service.ApiKeyService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
@@ -19,7 +22,9 @@ import software.amazon.awssdk.services.apigateway.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static it.gov.pagopa.atmlayer.service.userservice.enums.UsagePlanPatchOperations.*;
 
@@ -145,13 +150,23 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     public List<PatchOperation> buildPatchOperation(UsagePlanUpdateDTO updateDTO) {
+        if((updateDTO.getBurstLimit() == null && updateDTO.getRateLimit()!=null) || (updateDTO.getBurstLimit() != null && updateDTO.getRateLimit()==null)){
+            throw new AtmLayerException("Non è possibile specificare solo uno tra rate limit e burst limit",Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
+        }
+        if((updateDTO.getQuotaLimit() == null && updateDTO.getQuotaPeriod()!=null) || (updateDTO.getQuotaLimit() != null && updateDTO.getQuotaPeriod()==null)){
+            throw new AtmLayerException("Non è possibile specificare solo uno tra quota limit e quota period",Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
+        }
         log.info("-------- preparing patchOperations");
         // Build patch operations to update the usage plan
         List<PatchOperation> patchOperations = new ArrayList<>();
-        Optional.ofNullable(updateDTO.getQuotaLimit()).ifPresent(quotaLimit -> patchOperations.add(PatchOperation.builder().op(QUOTA_LIMIT.getOp()).path(QUOTA_LIMIT.getPath()).value(String.valueOf(quotaLimit)).build()));
-        Optional.ofNullable(updateDTO.getQuotaPeriod()).ifPresent(quotaPeriod -> patchOperations.add(PatchOperation.builder().op(QUOTA_PERIOD.getOp()).path(QUOTA_PERIOD.getPath()).value(quotaPeriod.toString()).build()));
-        Optional.ofNullable(updateDTO.getBurstLimit()).ifPresent(burstLimit -> patchOperations.add(PatchOperation.builder().op(BURST_LIMIT.getOp()).path(BURST_LIMIT.getPath()).value(String.valueOf(burstLimit)).build()));
-        Optional.ofNullable(updateDTO.getRateLimit()).ifPresent(rateLimit ->patchOperations.add(PatchOperation.builder().op(RATE_LIMIT.getOp()).path(RATE_LIMIT.getPath()).value(String.valueOf(rateLimit)).build()));
+        Optional.ofNullable(updateDTO.getQuotaLimit()).ifPresentOrElse(
+                quotaLimit -> patchOperations.add(PatchOperation.builder().op(Op.REPLACE).path(QUOTA_LIMIT.getPath()).value(String.valueOf(quotaLimit)).build()),
+                () -> patchOperations.add(PatchOperation.builder().op(Op.REMOVE).path(QUOTA.getPath()).build()));
+        Optional.ofNullable(updateDTO.getQuotaPeriod()).ifPresent(quotaPeriod -> patchOperations.add(PatchOperation.builder().op(Op.REPLACE).path(QUOTA_PERIOD.getPath()).value(quotaPeriod.toString()).build()));
+        Optional.ofNullable(updateDTO.getRateLimit()).ifPresentOrElse(
+                rateLimit -> patchOperations.add(PatchOperation.builder().op(Op.REPLACE).path(RATE_LIMIT.getPath()).value(String.valueOf(rateLimit)).build()),
+                () -> patchOperations.add(PatchOperation.builder().op(Op.REMOVE).path(THROTTLE.getPath()).build()));
+        Optional.ofNullable(updateDTO.getBurstLimit()).ifPresent(burstLimit -> patchOperations.add(PatchOperation.builder().op(Op.REPLACE).path(BURST_LIMIT.getPath()).value(String.valueOf(burstLimit)).build()));
         log.info("-------- prepared patchOperations: {}", patchOperations);
         return patchOperations;
     }
