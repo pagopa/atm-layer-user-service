@@ -19,10 +19,10 @@ public class ApiKeyResource {
     ApiKeyServiceImpl apiKeyService;
 
     @GET
-    @Path("/api-key/retrieve/{clientName}")
+    @Path("/api-key/retrieve/{apiKeyId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<ApiKeyDTO> getApiKey(@PathParam("clientName") String clientName) {
-        return apiKeyService.getApiKey(clientName);
+    public Uni<ApiKeyDTO> getApiKey(@PathParam("apiKeyId") String apiKeyId) {
+        return apiKeyService.getApiKey(apiKeyId);
     }
 
     @DELETE

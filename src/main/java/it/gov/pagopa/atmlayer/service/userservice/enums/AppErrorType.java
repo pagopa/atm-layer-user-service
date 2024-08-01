@@ -12,4 +12,5 @@ public enum AppErrorType {
     BLANK_FIELDS,
     NON_EXISTING_ACQUIRER_ID,
     COMMUNICATION_ERROR,
+    AWS_ERROR,
 }

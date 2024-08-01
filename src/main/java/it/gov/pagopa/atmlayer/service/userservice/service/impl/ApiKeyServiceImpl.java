@@ -3,6 +3,7 @@ package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
+import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorType;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.ApiKeyMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
@@ -55,28 +56,46 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .enabled(true)
                     .build();
             CreateApiKeyResponse response = apiGatewayClient.createApiKey(request);
+            if(response.sdkFields().isEmpty()){
+                throw new AtmLayerException("La richiesta di CreateApiKey su AWS non è andata a buon fine", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
+            }
             return new ApiKeyDTO(response.id(), response.value(), response.name()); // La chiave API viene restituita come ID
         });
     }
 
     @Override
-    public Uni<ApiKeyDTO> getApiKey(String clientName) {
+    public Uni<ApiKeyDTO> getApiKey(String apiKeyId) {
         return Uni.createFrom().item(() -> {
-            // Cerca le chiavi API con il nome specificato
-            GetApiKeysRequest request = GetApiKeysRequest.builder()
-                    .nameQuery(clientName)
-                    .includeValues(true)
-                    .limit(1) // Limita a un risultato
+            GetApiKeyRequest request = GetApiKeyRequest.builder()
+                    .apiKey(apiKeyId)
+                    .includeValue(true)
                     .build();
-            return apiGatewayClient.getApiKeysPaginator(request).items().stream()
-                    .findFirst()
-                    .map(apiKey -> {
-                        log.info("Api key: {}", apiKey);
-                        return new ApiKeyDTO(apiKey.id(), apiKey.value(), apiKey.name());
-                    })
-                    .orElse(null);
+            GetApiKeyResponse response = apiGatewayClient.getApiKey(request);
+            if(response.sdkFields().isEmpty()){
+                throw new AtmLayerException("ApiKey non trovata", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
+            }
+            return new ApiKeyDTO(response.id(), response.value(), response.name());
         });
     }
+
+//    @Override
+//    public Uni<ApiKeyDTO> getApiKey(String clientName) {
+//        return Uni.createFrom().item(() -> {
+//            // Cerca le chiavi API con il nome specificato
+//            GetApiKeysRequest request = GetApiKeysRequest.builder()
+//                    .nameQuery(clientName)
+//                    .includeValues(true)
+//                    .limit(1) // Limita a un risultato
+//                    .build();
+//            return apiGatewayClient.getApiKeysPaginator(request).items().stream()
+//                    .findFirst()
+//                    .map(apiKey -> {
+//                        log.info("Api key: {}", apiKey);
+//                        return new ApiKeyDTO(apiKey.id(), apiKey.value(), apiKey.name());
+//                    })
+//                    .orElse(null);
+//        });
+//    }
 
     @Override
     public Uni<Void> deleteApiKey(String apiKeyId) {
@@ -146,7 +165,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             UpdateUsagePlanResponse updatedPlan = apiGatewayClient.updateUsagePlan(updateUsagePlanRequest);
             return mapper.usagePlanUpdateToDto(updatedPlan);
 
-        }).onFailure().invoke(th -> log.error("Failed to update usage plan with id: {}", usagePlanId, th));
+        }).onFailure().transform(error -> new AtmLayerException("La richiesta di UpdateUsagePlan su AWS non è andata a buon fine", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR));
     }
 
     public List<PatchOperation> buildPatchOperation(UsagePlanUpdateDTO updateDTO) {

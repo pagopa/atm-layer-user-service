@@ -29,7 +29,8 @@ public enum AppErrorCodeEnum {
     RATEMIN_GREATER_THAN_RATEMAX("ATMLU_4000016", "rateMax deve essere maggiore di rateMin", CONSTRAINT_VIOLATION),
     AWS_COMMUNICATION_ERROR("ATMLU_4000017", "Errore di comunicazione con AWS", COMMUNICATION_ERROR),
     DATABASE_TRANSACTION_ERROR("ATMLU_4000018", "Errore di comunicazione con il database", COMMUNICATION_ERROR),
-    INVALID_PAYLOAD("ATMLU_4000019", "Il payload della richiesta no è valido", CONSTRAINT_VIOLATION);
+    INVALID_PAYLOAD("ATMLU_4000019", "Il payload della richiesta no è valido", CONSTRAINT_VIOLATION),
+    AWS_OPERATION_ERROR("ATMLU_4000020", "La richiesta verso AWS è fallita", AWS_ERROR);
 
     private final String errorCode;
     private final String errorMessage;
