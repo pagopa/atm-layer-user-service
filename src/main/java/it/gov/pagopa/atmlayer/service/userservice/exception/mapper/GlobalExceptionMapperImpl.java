@@ -55,7 +55,7 @@ public class GlobalExceptionMapperImpl {
     private RestResponse<ErrorResponse> buildErrorResponse(AtmLayerException e) {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .type(e.getType())
-                .status(e.getStatusCode())
+                .statusCode(e.getStatusCode())
                 .message(e.getMessage())
                 .errorCode(e.getErrorCode())
                 .build();
@@ -65,7 +65,7 @@ public class GlobalExceptionMapperImpl {
     private RestResponse<ErrorResponse> buildErrorResponse(String message, Exception e) {
         return RestResponse.status(Response.Status.INTERNAL_SERVER_ERROR, ErrorResponse.builder()
                 .type(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .message(message + " " + e)
                 .build());
     }
@@ -73,7 +73,7 @@ public class GlobalExceptionMapperImpl {
     private RestResponse<ErrorResponse> buildErrorResponse(String message) {
         return RestResponse.status(Response.Status.INTERNAL_SERVER_ERROR, ErrorResponse.builder()
                 .type(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .message(message)
                 .build());
     }
@@ -82,7 +82,7 @@ public class GlobalExceptionMapperImpl {
         List<String> errorMessages = constraintViolationMappingUtils.extractErrorMessages(errors);
         ValidationErrorResponse payload = ValidationErrorResponse.builder()
                 .type(Response.Status.BAD_REQUEST.getReasonPhrase())
-                .status(Response.Status.BAD_REQUEST.getStatusCode())
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .message(message)
                 .errors(errorMessages)
                 .build();

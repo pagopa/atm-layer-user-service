@@ -1,33 +1,25 @@
 package it.gov.pagopa.atmlayer.service.userservice.resource;
 
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.tuples.Tuple4;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankUpdateDTO;
-import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
-import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
-import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
-import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
-import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
-import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
 

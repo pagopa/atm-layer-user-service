@@ -11,11 +11,7 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
-import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
-import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
-import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
-import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
-import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
+import it.gov.pagopa.atmlayer.service.userservice.model.*;
 import it.gov.pagopa.atmlayer.service.userservice.repository.BankRepository;
 import it.gov.pagopa.atmlayer.service.userservice.service.ApiKeyService;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
@@ -25,7 +21,10 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 @Slf4j
@@ -211,7 +210,6 @@ public class BankServiceImpl implements BankService {
                 }))
                 .replaceWithVoid();
     }
-
 
 
 }

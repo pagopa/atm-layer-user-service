@@ -34,7 +34,7 @@ public class CognitoServiceImpl implements CognitoService {
             UserPoolClientType client = null;
             try {
                 DescribeUserPoolClientResponse response = awsClientConf.getCognitoClient().describeUserPoolClient(request);
-                client= response.userPoolClient();
+                client = response.userPoolClient();
                 log.info("Client value: {}", client);
             } catch (Exception e) {
                 log.error("ERROR with getClientCredentials: {}", e.getMessage());
@@ -63,7 +63,7 @@ public class CognitoServiceImpl implements CognitoService {
             UserPoolClientType client = null;
             try {
                 CreateUserPoolClientResponse response = awsClientConf.getCognitoClient().createUserPoolClient(request);
-                client= response.userPoolClient();
+                client = response.userPoolClient();
                 log.info("Client value: {}", client);
             } catch (Exception e) {
                 log.error("ERROR with getClientCredentials: {}", e.getMessage());
@@ -84,13 +84,13 @@ public class CognitoServiceImpl implements CognitoService {
     @Override
     public Uni<Void> deleteClient(String clientId) {
         return Uni.createFrom().item(() -> {
-                DeleteUserPoolClientRequest request = DeleteUserPoolClientRequest.builder()
-                        .userPoolId(userPoolId)
-                        .clientId(clientId)
-                        .build();
-                awsClientConf.getCognitoClient().deleteUserPoolClient(request);
-                log.info("Client with ID {} deleted successfully", clientId);
-                return null;
+            DeleteUserPoolClientRequest request = DeleteUserPoolClientRequest.builder()
+                    .userPoolId(userPoolId)
+                    .clientId(clientId)
+                    .build();
+            awsClientConf.getCognitoClient().deleteUserPoolClient(request);
+            log.info("Client with ID {} deleted successfully", clientId);
+            return null;
 
         }).onFailure().invoke(th -> log.error("Failed to delete usage plan with id: {}", clientId, th)).replaceWithVoid();
     }

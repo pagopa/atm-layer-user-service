@@ -18,7 +18,7 @@ class ErrorResponseTest {
     void testErrorResponseSerialization() throws Exception {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .type("error")
-                .status(500)
+                .statusCode(500)
                 .message("An unexpected error has occurred. Please contact support.")
                 .errorCode("ATMLU_500")
                 .build();
@@ -32,7 +32,7 @@ class ErrorResponseTest {
     void testJsonPropertyOrder() {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .type("error")
-                .status(500)
+                .statusCode(500)
                 .message("An unexpected error has occurred. Please contact support.")
                 .errorCode("ATMLU_500")
                 .build();

@@ -77,8 +77,8 @@ public class UserServiceImpl implements UserService {
         return this.getById(userId)
                 .onItem()
                 .transformToUni(Unchecked.function(userFound -> {
-                        userFound.setName(name);
-                        userFound.setSurname(surname);
+                    userFound.setName(name);
+                    userFound.setSurname(surname);
                     return userRepository.persist(userFound);
                 }));
     }
@@ -155,8 +155,8 @@ public class UserServiceImpl implements UserService {
                         return insertUserWithProfiles(userInsertionWithProfilesDTO)
                                 .onItem()
                                 .transformToUni(list -> Uni.createFrom().voidItem());
-                        }
-                        return Uni.createFrom().voidItem();
+                    }
+                    return Uni.createFrom().voidItem();
                 });
     }
 }

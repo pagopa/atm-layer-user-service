@@ -1,7 +1,6 @@
 package it.gov.pagopa.atmlayer.service.userservice.resource;
 
 import io.smallrye.mutiny.Uni;
-import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
@@ -11,7 +10,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
-import software.amazon.awssdk.services.apigateway.model.QuotaPeriodType;
 
 @ApplicationScoped
 @Path("/api-gateway")
