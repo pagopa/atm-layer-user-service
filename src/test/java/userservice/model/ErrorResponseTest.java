@@ -39,7 +39,7 @@ class ErrorResponseTest {
 
         try {
             String json = objectMapper.writeValueAsString(errorResponse);
-            String expectedJson = "{\"type\":\"error\",\"status\":500,\"message\":\"An unexpected error has occurred. Please contact support.\",\"errorCode\":\"ATMLU_500\"}";
+            String expectedJson = "{\"type\":\"error\",\"statusCode\":500,\"message\":\"An unexpected error has occurred. Please contact support.\",\"errorCode\":\"ATMLU_500\"}";
             assertEquals(expectedJson, json);
         } catch (Exception e) {
             fail("JSON serialization failed: " + e.getMessage());
