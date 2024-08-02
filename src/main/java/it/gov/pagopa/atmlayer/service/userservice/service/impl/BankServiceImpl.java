@@ -67,6 +67,7 @@ public class BankServiceImpl implements BankService {
                                 if (!findResult.isEmpty()) {
                                     bankEntity = findResult.get(0);
                                     bankEntity.setEnabled(true);
+                                    bankEntity.setDenomination(bankInsertionDTO.getDenomination());
                                 } else {
                                     bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
                                 }
