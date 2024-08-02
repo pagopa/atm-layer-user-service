@@ -24,6 +24,9 @@ public class CognitoServiceImpl implements CognitoService {
     @ConfigProperty(name = "cognito.user-pool.id")
     String userPoolId;
 
+    @ConfigProperty(name = "cognito.scopes")
+    String scopes;
+
     @Override
     public Uni<ClientCredentialsDTO> getClientCredentials(String clientId) {
         return Uni.createFrom().item(() -> {
@@ -56,11 +59,11 @@ public class CognitoServiceImpl implements CognitoService {
     public Uni<ClientCredentialsDTO> generateClient(String clientName) {
         return Uni.createFrom().item(() -> {
                        CreateUserPoolClientRequest request = CreateUserPoolClientRequest.builder()
-                    .userPoolId("eu-south-1_sEZF9PqAf")
+                    .userPoolId(userPoolId)
                                .allowedOAuthFlowsUserPoolClient(true)
                     .supportedIdentityProviders("COGNITO")
                     .allowedOAuthFlows(OAuthFlowType.CLIENT_CREDENTIALS)
-                               .allowedOAuthScopes("dev/tasks")
+                               .allowedOAuthScopes(scopes)
                     .clientName(clientName)
                     .generateSecret(true)
                     .build();

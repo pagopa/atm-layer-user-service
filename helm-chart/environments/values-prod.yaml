@@ -57,6 +57,7 @@ milAuth:
 
 apiGatewayId: aw3zxm78qg
 cognitoUserPoolId: eu-south-1_jN5nkKfcY
+cognitoScopes: prod/tasks
 
 redis:
   credentialsSecretEnabled: true

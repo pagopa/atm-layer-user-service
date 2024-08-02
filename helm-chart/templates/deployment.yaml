@@ -108,6 +108,8 @@ spec:
                   name: {{ .Values.database.credentialsSecretName }}
                   key: {{ .Values.database.credentialsSecretKeys.password }}
                   {{- end }}
+            - name: SCOPES
+              value: "{{ .Values.cognitoScopes}}"
           volumeMounts:
           {{- if .Values.secretProviderClass.enabled }}
           - name: secrets-store-inline
