@@ -3,10 +3,13 @@ package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.configuration.AwsClientConf;
+import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
+import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
 import it.gov.pagopa.atmlayer.service.userservice.service.CognitoService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
@@ -73,7 +76,8 @@ public class CognitoServiceImpl implements CognitoService {
                 client = response.userPoolClient();
                 log.info("Client value: {}", client);
             } catch (Exception e) {
-                log.error("ERROR with getClientCredentials: {}", e.getMessage());
+                log.error("La richiesta di CreateUserPoolClient su AWS non è andata a buon fine: {}", e.getMessage());
+                throw new AtmLayerException(("La richiesta di CreateUserPoolClient su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
             try {
                 ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
@@ -86,6 +90,31 @@ public class CognitoServiceImpl implements CognitoService {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    @Override
+    public Uni<ClientCredentialsDTO> updateClientName(String clientId, String clientName) {
+        UpdateUserPoolClientRequest request = UpdateUserPoolClientRequest.builder()
+                .clientId(clientId)
+                .clientName(clientName)
+                .build();
+        UserPoolClientType client = null;
+        try {
+            UpdateUserPoolClientResponse response = awsClientConf.getCognitoClient().updateUserPoolClient(request);
+            client = response.userPoolClient();
+            log.info("Client value: {}", client);
+        } catch (Exception e) {
+            log.error("La richiesta di UpdateUserPoolClient su AWS non è andata a buon fine: {}", e.getMessage());
+            throw new AtmLayerException(("La richiesta di CreateUserPoolClient su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
+        }
+        if (client.sdkFields().isEmpty()){
+            throw new AtmLayerException("Errore nella richiesta di UpdateUserPoolClient: campi vuoti", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
+        }
+        ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
+        clientCredentialsDTO.setClientId(client != null ? client.clientId() : "");
+        clientCredentialsDTO.setClientSecret(client != null ? client.clientSecret() : "");
+        clientCredentialsDTO.setClientName(client != null ? client.clientName() : "");
+        return Uni.createFrom().item(clientCredentialsDTO);
     }
 
     @Override

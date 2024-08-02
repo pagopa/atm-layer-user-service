@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @ApplicationScoped
 @Slf4j
@@ -93,35 +94,24 @@ public class BankServiceImpl implements BankService {
                     if (bankToUpdate == null) {
                         throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_NOT_FOUND);
                     }
+                    if (!Objects.equals(bankToUpdate.getDenomination(), input.getDenomination())){
+                        bankToUpdate.setDenomination(input.getDenomination());
+                        return bankRepository.persist(bankToUpdate)
+                                .onItem()
+                                .transformToUni(bankWithUpdatedName -> cognitoService.updateClientName(bankWithUpdatedName.getClientId(), bankWithUpdatedName.getDenomination())
+                                        .onItem()
+                                        .transformToUni(updatedClientCredentials ->
+                                                apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
+                                                        .onItem()
+                                                        .transformToUni(updatedUsagePlan -> getStaticAWSInfo(bankWithUpdatedName, updatedClientCredentials, updatedUsagePlan))));
+                    }
                     return apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
                             .onItem()
                             .transformToUni(usagePlan -> getStaticAWSInfo(bankToUpdate, usagePlan));
                 }));
     }
 
-    public Uni<BankPresentationDTO> getStaticAWSInfo(BankEntity bankEntity, UsagePlanDTO usagePlanDto) {
-        return apiKeyService.getApiKey(bankEntity.getApiKeyId())
-                .onItem()
-                .transformToUni(apiKeyDto -> cognitoService.getClientCredentials(bankEntity.getClientId())
-                        .onItem()
-                        .transformToUni(clientDto ->
-                                Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apiKeyDto, clientDto, usagePlanDto))));
-    }
-
-    @Override
-    @WithSession
-    public Uni<BankPresentationDTO> findByAcquirerId(String acquirerId) {
-        return bankRepository.findById(acquirerId)
-                .onItem()
-                .transformToUni(bankEntity -> {
-                    if (bankEntity == null) {
-                        throw new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.BANK_NOT_FOUND);
-                    }
-                    return gatherAdditionalInfo(bankEntity);
-                });
-    }
-
-    private Uni<BankPresentationDTO> gatherAdditionalInfo(BankEntity bankEntity) {
+    private Uni<BankPresentationDTO> getStaticAWSInfo(BankEntity bankEntity) {
         return apiKeyService.getUsagePlan(bankEntity.getUsagePlanId())
                 .onItem()
                 .transformToUni(usagePlanDto ->
@@ -136,6 +126,37 @@ public class BankServiceImpl implements BankService {
                                 )
                 );
     }
+
+    public Uni<BankPresentationDTO> getStaticAWSInfo(BankEntity bankEntity, UsagePlanDTO usagePlanDto) {
+        return apiKeyService.getApiKey(bankEntity.getApiKeyId())
+                .onItem()
+                .transformToUni(apiKeyDto -> cognitoService.getClientCredentials(bankEntity.getClientId())
+                        .onItem()
+                        .transformToUni(clientDto ->
+                                Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apiKeyDto, clientDto, usagePlanDto))));
+    }
+
+    public Uni<BankPresentationDTO> getStaticAWSInfo(BankEntity bankEntity, ClientCredentialsDTO clientDto, UsagePlanDTO usagePlanDto) {
+        return apiKeyService.getApiKey(bankEntity.getApiKeyId())
+                .onItem()
+                .transformToUni(apiKeyDto ->
+                        Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apiKeyDto, clientDto, usagePlanDto)));
+    }
+
+    @Override
+    @WithSession
+    public Uni<BankPresentationDTO> findByAcquirerId(String acquirerId) {
+        return bankRepository.findById(acquirerId)
+                .onItem()
+                .transformToUni(bankEntity -> {
+                    if (bankEntity == null) {
+                        throw new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.BANK_NOT_FOUND);
+                    }
+                    return getStaticAWSInfo(bankEntity);
+                });
+    }
+
+
 
 
     @WithTransaction
