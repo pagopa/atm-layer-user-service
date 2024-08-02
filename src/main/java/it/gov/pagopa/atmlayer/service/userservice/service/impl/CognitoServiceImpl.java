@@ -57,8 +57,10 @@ public class CognitoServiceImpl implements CognitoService {
         return Uni.createFrom().item(() -> {
                        CreateUserPoolClientRequest request = CreateUserPoolClientRequest.builder()
                     .userPoolId("eu-south-1_sEZF9PqAf")
+                               .allowedOAuthFlowsUserPoolClient(true)
                     .supportedIdentityProviders("COGNITO")
-                    .allowedOAuthFlows(OAuthFlowType.CLIENT_CREDENTIALS).allowedOAuthScopes("dev/tasks")
+                    .allowedOAuthFlows(OAuthFlowType.CLIENT_CREDENTIALS)
+                               .allowedOAuthScopes("dev/tasks")
                     .clientName(clientName)
                     .generateSecret(true)
                     .build();
