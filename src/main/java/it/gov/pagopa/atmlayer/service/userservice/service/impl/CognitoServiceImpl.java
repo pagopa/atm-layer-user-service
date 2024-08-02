@@ -95,6 +95,7 @@ public class CognitoServiceImpl implements CognitoService {
     @Override
     public Uni<ClientCredentialsDTO> updateClientName(String clientId, String clientName) {
         UpdateUserPoolClientRequest request = UpdateUserPoolClientRequest.builder()
+                .userPoolId(userPoolId)
                 .clientId(clientId)
                 .clientName(clientName)
                 .build();
@@ -105,7 +106,7 @@ public class CognitoServiceImpl implements CognitoService {
             log.info("Client value: {}", client);
         } catch (Exception e) {
             log.error("La richiesta di UpdateUserPoolClient su AWS non è andata a buon fine: {}", e.getMessage());
-            throw new AtmLayerException(("La richiesta di CreateUserPoolClient su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
+            throw new AtmLayerException(("La richiesta di UpdateUserPoolClient su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
         }
         if (client.sdkFields().isEmpty()){
             throw new AtmLayerException("Errore nella richiesta di UpdateUserPoolClient: campi vuoti", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
