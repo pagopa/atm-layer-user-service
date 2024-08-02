@@ -39,13 +39,6 @@ public class ApiKeyResource {
         return apiKeyService.createApiKey(clientName);
     }
 
-//    @POST
-//    @Path("/create-usage-plan")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public Uni<UsagePlanDTO> createUsagePlan(@RequestBody (required = true) BankInsertionDTO bankInsertionDTO) {
-//        return apiKeyService.createUsagePlan(bankInsertionDTO);
-//    }
-
     @GET
     @Path("/usage-plan/{usagePlanId}")
     @Produces(MediaType.APPLICATION_JSON)

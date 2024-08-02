@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -99,6 +100,36 @@ class UserResourceTest {
                 .body(userInsertionDTO)
                 .when()
                 .put("api/v1/user-service/users/update")
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(UserWithProfilesDTO.class);
+
+        assertEquals(userWithProfilesDTO, result);
+    }
+
+    @Test
+    void testUpdateWithProfiles() {
+        UserWithProfilesDTO userWithProfilesDTO = new UserWithProfilesDTO();
+        UserInsertionWithProfilesDTO userInsertionWithProfilesDTO = new UserInsertionWithProfilesDTO();
+        User updatedUser = new User();
+        User insertedUser = new User();
+
+        userInsertionWithProfilesDTO.setUserId("Paolo@Rossi.com");
+        userInsertionWithProfilesDTO.setProfileIds(Arrays.asList(1, 2, 3));
+
+        when(userService.updateWithProfiles(userInsertionWithProfilesDTO))
+                .thenReturn(Uni.createFrom().item(updatedUser));
+        when(userRepository.findByIdCustom(userInsertionWithProfilesDTO.getUserId()))
+                .thenReturn(Uni.createFrom().item(insertedUser));
+        when(userMapper.toProfilesDTO(insertedUser))
+                .thenReturn(userWithProfilesDTO);
+
+        UserWithProfilesDTO result = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(userInsertionWithProfilesDTO)
+                .when()
+                .put("api/v1/user-service/users/update-with-profiles")
                 .then()
                 .statusCode(200)
                 .extract()

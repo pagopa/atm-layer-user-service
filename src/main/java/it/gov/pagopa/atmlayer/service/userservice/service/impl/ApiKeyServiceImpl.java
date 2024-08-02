@@ -3,7 +3,6 @@ package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
-import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorType;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.ApiKeyMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
@@ -23,9 +22,7 @@ import software.amazon.awssdk.services.apigateway.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static it.gov.pagopa.atmlayer.service.userservice.enums.UsagePlanPatchOperations.*;
 
@@ -56,7 +53,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .enabled(true)
                     .build();
             CreateApiKeyResponse response = apiGatewayClient.createApiKey(request);
-            if(response.sdkFields().isEmpty()){
+            if (response.sdkFields().isEmpty()) {
                 throw new AtmLayerException("La richiesta di CreateApiKey su AWS non è andata a buon fine", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
             return new ApiKeyDTO(response.id(), response.value(), response.name()); // La chiave API viene restituita come ID
@@ -71,40 +68,21 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .includeValue(true)
                     .build();
             GetApiKeyResponse response = apiGatewayClient.getApiKey(request);
-            if(response.sdkFields().isEmpty()){
+            if (response.sdkFields().isEmpty()) {
                 throw new AtmLayerException("ApiKey non trovata", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
             return new ApiKeyDTO(response.id(), response.value(), response.name());
         });
     }
 
-//    @Override
-//    public Uni<ApiKeyDTO> getApiKey(String clientName) {
-//        return Uni.createFrom().item(() -> {
-//            // Cerca le chiavi API con il nome specificato
-//            GetApiKeysRequest request = GetApiKeysRequest.builder()
-//                    .nameQuery(clientName)
-//                    .includeValues(true)
-//                    .limit(1) // Limita a un risultato
-//                    .build();
-//            return apiGatewayClient.getApiKeysPaginator(request).items().stream()
-//                    .findFirst()
-//                    .map(apiKey -> {
-//                        log.info("Api key: {}", apiKey);
-//                        return new ApiKeyDTO(apiKey.id(), apiKey.value(), apiKey.name());
-//                    })
-//                    .orElse(null);
-//        });
-//    }
-
     @Override
     public Uni<Void> deleteApiKey(String apiKeyId) {
         return Uni.createFrom().item(() -> {
-                    DeleteApiKeyRequest request = DeleteApiKeyRequest.builder()
-                            .apiKey(apiKeyId)
-                            .build();
-                    apiGatewayClient.deleteApiKey(request);
-                    return null;
+            DeleteApiKeyRequest request = DeleteApiKeyRequest.builder()
+                    .apiKey(apiKeyId)
+                    .build();
+            apiGatewayClient.deleteApiKey(request);
+            return null;
         }).onFailure().invoke(th -> log.error("Failed to delete usage plan with id: {}", apiKeyId, th)).replaceWithVoid();
     }
 
@@ -169,11 +147,11 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     public List<PatchOperation> buildPatchOperation(UsagePlanUpdateDTO updateDTO) {
-        if((updateDTO.getBurstLimit() == null && updateDTO.getRateLimit()!=null) || (updateDTO.getBurstLimit() != null && updateDTO.getRateLimit()==null)){
-            throw new AtmLayerException("Non è possibile specificare solo uno tra rate limit e burst limit",Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
+        if ((updateDTO.getBurstLimit() == null && updateDTO.getRateLimit() != null) || (updateDTO.getBurstLimit() != null && updateDTO.getRateLimit() == null)) {
+            throw new AtmLayerException("Non è possibile specificare solo uno tra rate limit e burst limit", Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
         }
-        if((updateDTO.getQuotaLimit() == null && updateDTO.getQuotaPeriod()!=null) || (updateDTO.getQuotaLimit() != null && updateDTO.getQuotaPeriod()==null)){
-            throw new AtmLayerException("Non è possibile specificare solo uno tra quota limit e quota period",Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
+        if ((updateDTO.getQuotaLimit() == null && updateDTO.getQuotaPeriod() != null) || (updateDTO.getQuotaLimit() != null && updateDTO.getQuotaPeriod() == null)) {
+            throw new AtmLayerException("Non è possibile specificare solo uno tra quota limit e quota period", Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
         }
         log.info("-------- preparing patchOperations");
         // Build patch operations to update the usage plan
@@ -194,16 +172,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     public Uni<Void> deleteUsagePlan(String usagePlanId) {
         return Uni.createFrom().item(() -> {
 
-
-            /*DeleteUsagePlanKeyRequest usagePlanKeyRequest = DeleteUsagePlanKeyRequest.builder()
-                    .usagePlanId(usagePlanId)
-                    .keyId(apiKeyId)
-                    .build();
-            apiGatewayClient.deleteUsagePlanKey(usagePlanKeyRequest);*/
-
-
             List<PatchOperation> patchOperations = new ArrayList<>();
-            patchOperations.add(PatchOperation.builder().op(Op.REMOVE).path("/apiStages").value(apiGatewayId+":"+apiGatewayStage).build());
+            patchOperations.add(PatchOperation.builder().op(Op.REMOVE).path("/apiStages").value(apiGatewayId + ":" + apiGatewayStage).build());
             UpdateUsagePlanRequest updateUsagePlanRequest = UpdateUsagePlanRequest.builder()
                     .usagePlanId(usagePlanId)
                     .patchOperations(patchOperations)

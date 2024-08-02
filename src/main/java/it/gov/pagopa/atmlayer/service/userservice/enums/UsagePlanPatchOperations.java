@@ -2,7 +2,6 @@ package it.gov.pagopa.atmlayer.service.userservice.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import software.amazon.awssdk.services.apigateway.model.Op;
 
 @Getter
 @AllArgsConstructor
