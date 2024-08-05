@@ -157,19 +157,6 @@ public class BankServiceImpl implements BankService {
                 });
     }
 
-
-
-
-    @WithTransaction
-    public Uni<BankEntity> setDisabledBankAttributes(String acquirerId) {
-        return this.findBankById(acquirerId)
-                .onItem()
-                .transformToUni(bank -> {
-                    bank.setEnabled(false);
-                    return this.bankRepository.persist(bank);
-                });
-    }
-
     @Override
     @WithSession
     public Uni<BankEntity> findBankById(String acquirerId) {
