@@ -3,6 +3,7 @@ package userservice.service.impl;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.configuration.ApiGatewayClientConf;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.ApiKeyMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
@@ -245,7 +246,7 @@ class ApiKeyServiceImplTest {
         verify(mapper, never()).usagePlanGetToDto(any());
     }
 
-   /* @Test
+   @Test
     void testCreateUsagePlanSuccess() {
         String apiKeyId = "apiKey123";
         BankInsertionDTO bankInsertionDTO = new BankInsertionDTO();
@@ -277,8 +278,8 @@ class ApiKeyServiceImplTest {
         usagePlanDTO.setRateLimit(10.5);
 
         when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
-        when(apiGatewayClient.createUsagePlan(usagePlanRequest)).thenReturn(usagePlanResponse);
-        when(mapper.usagePlanCreateToDto(usagePlanResponse)).thenReturn(usagePlanDTO);
+        when(apiGatewayClient.createUsagePlan(any(CreateUsagePlanRequest.class))).thenReturn(usagePlanResponse);
+        when(mapper.usagePlanCreateToDto(any(CreateUsagePlanResponse.class))).thenReturn(usagePlanDTO);
 
         CreateUsagePlanKeyRequest usagePlanKeyRequest = CreateUsagePlanKeyRequest.builder()
                 .usagePlanId(usagePlanId)
@@ -298,10 +299,10 @@ class ApiKeyServiceImplTest {
             assertEquals(10.5, dto.getRateLimit());
         }, throwable -> fail("Expected no exception, but got: " + throwable));
 
-        verify(apiGatewayClient).createUsagePlan(usagePlanRequest);
-        verify(apiGatewayClient).createUsagePlanKey(usagePlanKeyRequest);
-        verify(mapper).usagePlanCreateToDto(usagePlanResponse);
-    }*/
+        verify(apiGatewayClient).createUsagePlan(any(CreateUsagePlanRequest.class));
+        verify(apiGatewayClient).createUsagePlanKey(any(CreateUsagePlanKeyRequest.class));
+        verify(mapper).usagePlanCreateToDto(any(CreateUsagePlanResponse.class));
+    }
 
     @Test
     void testBuildPatchOperationWithAllValidFields() {

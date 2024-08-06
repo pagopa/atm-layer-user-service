@@ -7,6 +7,7 @@ import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import software.amazon.awssdk.services.apigateway.model.QuotaPeriodType;
 
 import java.util.*;
 
@@ -132,8 +134,8 @@ class BankServiceImplTest {
         verify(bankRepository, never()).persist(any(BankEntity.class));
     }
 
-    /*@Test
-    void testUpdateBankSuccess() {
+    @Test
+    void testUpdateBankSuccess_differentName() {
         BankUpdateDTO input = new BankUpdateDTO();
         input.setAcquirerId("test-acquirer-id");
         input.setDenomination("New Denomination");
@@ -171,11 +173,11 @@ class BankServiceImplTest {
         verify(apiKeyService).updateUsagePlan(anyString(), any());
         verify(cognitoService).updateClientName(anyString(), anyString());
         verify(apiKeyService).getApiKey(anyString());
-        verify(cognitoService).getClientCredentials(anyString());
         verify(bankMapper).toPresentationDTO(any(), any(), any(), any());
 
         verifyNoMoreInteractions(bankRepository, apiKeyService, cognitoService, bankMapper);
-    }*/
+    }
+
 
 
     /*@Test
