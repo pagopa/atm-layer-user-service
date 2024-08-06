@@ -48,41 +48,88 @@ public class BankServiceImpl implements BankService {
     public Uni<BankPresentationDTO> insertBank(BankInsertionDTO bankInsertionDTO) {
         String acquirerId = bankInsertionDTO.getAcquirerId();
         log.info("Inserting bank with acquirerId : {}", acquirerId);
-        return this.bankRepository.findAllById(bankInsertionDTO.getAcquirerId())
+
+        return this.bankRepository.findAllById(acquirerId)
                 .onItem()
-                .transformToUni(Unchecked.function(findResult -> {
+                .transformToUni(findResult -> {
                     if (!findResult.isEmpty() && Boolean.TRUE.equals(findResult.get(0).getEnabled())) {
                         log.error("acquirerId {} already exists", acquirerId);
                         throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_WITH_THE_SAME_ID_ALREADY_EXISTS);
                     }
-                    return cognitoService.generateClient(bankInsertionDTO.getDenomination()).onItem().transformToUni(cognitoCredentials -> {
-                        ClientCredentialsDTO createdClient = cognitoCredentials;
-                        log.info("client credentials created : {}", createdClient);
-                        return apiKeyService.createApiKey(createdClient.getClientName()).onItem().transformToUni(apiKey -> {
-                            ApiKeyDTO apikeyCreated = apiKey;
-                            log.info("apikey created : {}", apikeyCreated);
-                            return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId()).onItem().transformToUni(associatedUsagePlan -> {
-                                log.info("associatedUsagePlan created : {}", associatedUsagePlan);
-                                BankEntity bankEntity;
-                                if (!findResult.isEmpty()) {
-                                    bankEntity = findResult.get(0);
-                                    bankEntity.setEnabled(true);
-                                    bankEntity.setDenomination(bankInsertionDTO.getDenomination());
-                                } else {
-                                    bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
-                                }
-                                bankEntity.setClientId(createdClient.getClientId());
-                                bankEntity.setApiKeyId(apikeyCreated.getId());
-                                bankEntity.setUsagePlanId(associatedUsagePlan.getId());
-                                log.info("bankEntity : {}", bankEntity);
-                                return bankRepository.persist(bankEntity)
+
+                    BankEntity bankEntity;
+                    if (!findResult.isEmpty()) {
+                        bankEntity = findResult.get(0);
+                        bankEntity.setEnabled(true);
+                        bankEntity.setDenomination(bankInsertionDTO.getDenomination());
+                    } else {
+                        bankEntity = bankMapper.toEntityInsertion(bankInsertionDTO);
+                    }
+
+                    return cognitoService.generateClient(bankInsertionDTO.getDenomination())
+                            .onItem()
+                            .transformToUni(cognitoCredentials -> {
+                                ClientCredentialsDTO createdClient = cognitoCredentials;
+                                log.info("client credentials created : {}", createdClient);
+
+                                return apiKeyService.createApiKey(createdClient.getClientName())
                                         .onItem()
-                                        .transformToUni(bank -> Uni.createFrom().item(bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan)));
-                            });
-                        });
-                    });
-                }));
+                                        .transformToUni(apiKey -> {
+                                            ApiKeyDTO apikeyCreated = apiKey;
+                                            log.info("apikey created : {}", apikeyCreated);
+
+                                            return apiKeyService.createUsagePlan(bankInsertionDTO, apikeyCreated.getId())
+                                                    .onItem()
+                                                    .transformToUni(associatedUsagePlan -> {
+                                                        log.info("associatedUsagePlan created : {}", associatedUsagePlan);
+
+                                                        bankEntity.setClientId(createdClient.getClientId());
+                                                        bankEntity.setApiKeyId(apikeyCreated.getId());
+                                                        bankEntity.setUsagePlanId(associatedUsagePlan.getId());
+                                                        log.info("bankEntity : {}", bankEntity);
+
+                                                        return bankRepository.persist(bankEntity)
+                                                                .onItem()
+                                                                .transform(bank -> bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan));
+                                                    })
+                                                    .onFailure().recoverWithUni(throwable -> rollbackUsagePlanCreation(createdClient, apikeyCreated, bankEntity)
+                                                            .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.USAGE_PLAN_CREATION_FAILED))));
+                                        })
+                                        .onFailure().recoverWithUni(throwable -> rollbackApiKeyCreation(createdClient, bankEntity)
+                                                .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.API_KEY_CREATION_FAILED))));
+                            })
+                            .onFailure().recoverWithUni(throwable -> rollbackClientCreation(bankEntity)
+                                    .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.CLIENT_CREATION_FAILED))));
+                });
     }
+
+    private Uni<Void> rollbackClientCreation(BankEntity bankEntity) {
+        return bankRepository.delete(bankEntity)
+                .onItem().invoke(() -> log.info("Rollback: Bank entity deleted."))
+                .replaceWith(Uni.createFrom().voidItem());
+    }
+
+    private Uni<Void> rollbackApiKeyCreation(ClientCredentialsDTO clientCredentials, BankEntity bankEntity) {
+        return apiKeyService.deleteApiKey(clientCredentials.getClientId())
+                .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
+                .replaceWith(bankRepository.delete(bankEntity))
+                .onItem().invoke(() -> log.info("Rollback: Bank entity deleted."))
+                .replaceWith(Uni.createFrom().voidItem());
+    }
+
+    private Uni<Void> rollbackUsagePlanCreation(ClientCredentialsDTO clientCredentials, ApiKeyDTO apiKey, BankEntity bankEntity) {
+        return apiKeyService.deleteUsagePlan(apiKey.getId())
+                .onItem().invoke(() -> log.info("Rollback: Usage Plan deleted."))
+                .replaceWith(apiKeyService.deleteApiKey(clientCredentials.getClientId()))
+                .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
+                .replaceWith(cognitoService.deleteClient(clientCredentials.getClientId()))
+                .onItem().invoke(() -> log.info("Rollback: Cognito Client deleted."))
+                .replaceWith(bankRepository.delete(bankEntity))
+                .onItem().invoke(() -> log.info("Rollback: Bank entity deleted."))
+                .replaceWith(Uni.createFrom().voidItem());
+    }
+
+
 
     @Override
     @WithTransaction

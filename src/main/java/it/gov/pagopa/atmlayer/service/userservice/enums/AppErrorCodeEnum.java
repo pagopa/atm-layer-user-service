@@ -30,7 +30,10 @@ public enum AppErrorCodeEnum {
     AWS_COMMUNICATION_ERROR("ATMLU_4000017", "Errore di comunicazione con AWS", COMMUNICATION_ERROR),
     DATABASE_TRANSACTION_ERROR("ATMLU_4000018", "Errore di comunicazione con il database", COMMUNICATION_ERROR),
     INVALID_PAYLOAD("ATMLU_4000019", "Il payload della richiesta no è valido", CONSTRAINT_VIOLATION),
-    AWS_OPERATION_ERROR("ATMLU_4000020", "La richiesta verso AWS è fallita", AWS_ERROR);
+    AWS_OPERATION_ERROR("ATMLU_4000020", "La richiesta verso AWS è fallita", AWS_ERROR),
+    USAGE_PLAN_CREATION_FAILED("ATMLU_4000021", "La creazione dello usage plan non è andata a buon fine", AWS_ERROR),
+    API_KEY_CREATION_FAILED("ATMLU_4000022", "La creazione dell'Api-key non è andata a buon fine", AWS_ERROR),
+    CLIENT_CREATION_FAILED("ATMLU_4000023", "La creazione del client Cognito non è andata a buon fine", AWS_ERROR);
 
     private final String errorCode;
     private final String errorMessage;
