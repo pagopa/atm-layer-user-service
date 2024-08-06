@@ -130,16 +130,11 @@ public class UserResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/filter")
-    public Uni<PageInfo<UserWithProfilesDTO>> getUserFiltered(@QueryParam("pageIndex") @DefaultValue("0")
-                                                              @Parameter(required = true, schema = @Schema(minimum = "0", maximum = "10000")) int pageIndex,
-                                                          @QueryParam("pageSize") @DefaultValue("10")
-                                                              @Parameter(required = true, schema = @Schema(minimum = "1", maximum = "100")) int pageSize,
-                                                          @QueryParam("name")
-                                                          String name,
-                                                          @QueryParam("surname")
-                                                          String surname,
-                                                          @QueryParam("userId")
-                                                          String userId) {
+    public Uni<PageInfo<UserWithProfilesDTO>> getUserFiltered(@QueryParam("pageIndex") @DefaultValue("0") @Parameter(required = true, schema = @Schema(minimum = "0", maximum = "10000")) int pageIndex,
+                                                              @QueryParam("pageSize") @DefaultValue("10") @Parameter(required = true, schema = @Schema(minimum = "1", maximum = "100")) int pageSize,
+                                                              @QueryParam("name") String name,
+                                                              @QueryParam("surname") String surname,
+                                                              @QueryParam("userId") String userId) {
         return userService.getUserFiltered(pageIndex, pageSize, name, surname, userId)
                 .onItem()
                 .transformToUni(Unchecked.function(pagedList -> {
@@ -149,4 +144,5 @@ public class UserResource {
                     return Uni.createFrom().item(userMapper.toFrontEndDTOListPaged(pagedList));
                 }));
     }
+
 }

@@ -12,6 +12,7 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfiles;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.UserMapper;
+import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import it.gov.pagopa.atmlayer.service.userservice.repository.UserRepository;
 import it.gov.pagopa.atmlayer.service.userservice.service.UserProfilesService;
 import it.gov.pagopa.atmlayer.service.userservice.service.impl.UserServiceImpl;
@@ -26,6 +27,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -77,6 +79,41 @@ class UserServiceImplTest {
         userInsertionWithProfilesDTO.setName("prova");
         userInsertionWithProfilesDTO.setSurname("test");
         userInsertionWithProfilesDTO.setProfileIds(List.of(1));
+    }
+
+    @Test
+    void testGetUserFiltered() {
+        List<User> usersList = new ArrayList<>();
+        User user = new User();
+        usersList.add(user);
+        int pageIndex = 0;
+        int pageSize = 10;
+        String name = "John";
+        String surname = "Doe";
+        String userId = "123";
+
+        PageInfo<User> expectedResult = new PageInfo<>(0, 10, 1, 1, usersList);
+
+        when(userRepository.findByFilters(anyMap(), eq(pageIndex), eq(pageSize))).thenReturn(Uni.createFrom().item(expectedResult));
+
+        Uni<PageInfo<User>> result = userServiceImpl.getUserFiltered(pageIndex, pageSize, name, surname, userId);
+
+        result.subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted()
+                .assertItem(expectedResult);
+    }
+
+    @Test
+    void testGetUserFilteredWithNullOrEmptyFilters() {
+        int pageIndex = 0;
+        int pageSize = 10;
+        String name = "John";
+        String surname = "Doe";
+        String userId = "123";
+
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, name, surname, null).await().indefinitely());
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, null, surname, userId).await().indefinitely());
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, null, null, null).await().indefinitely());
     }
 
     @Test

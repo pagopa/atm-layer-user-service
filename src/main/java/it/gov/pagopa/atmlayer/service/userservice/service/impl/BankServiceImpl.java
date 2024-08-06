@@ -112,7 +112,7 @@ public class BankServiceImpl implements BankService {
                 }));
     }
 
-    private Uni<BankPresentationDTO> getStaticAWSInfo(BankEntity bankEntity) {
+    public Uni<BankPresentationDTO> getStaticAWSInfo(BankEntity bankEntity) {
         return apiKeyService.getUsagePlan(bankEntity.getUsagePlanId())
                 .onItem()
                 .transformToUni(usagePlanDto ->
