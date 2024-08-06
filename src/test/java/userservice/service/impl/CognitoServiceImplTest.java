@@ -2,7 +2,7 @@ package userservice.service.impl;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
-import it.gov.pagopa.atmlayer.service.userservice.configuration.AwsClientConf;
+import it.gov.pagopa.atmlayer.service.userservice.configuration.CognitoClientConf;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
 import it.gov.pagopa.atmlayer.service.userservice.service.impl.CognitoServiceImpl;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 class CognitoServiceImplTest {
 
     @Mock
-    AwsClientConf awsClientConf;
+    CognitoClientConf cognitoClientConf;
     @Mock
     private CognitoIdentityProviderClient cognitoClient;
     @InjectMocks
@@ -39,7 +39,7 @@ class CognitoServiceImplTest {
         String clientId = "test-client-id";
         String clientName = "updated-client-name";
 
-        when(awsClientConf.getCognitoClient()).thenReturn(cognitoClient);
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
 
         UserPoolClientType userPoolClient = UserPoolClientType.builder()
                 .clientId(clientId)
@@ -66,7 +66,7 @@ class CognitoServiceImplTest {
     void testGenerateClientSuccess() {
         String clientName = "test-client";
 
-        when(awsClientConf.getCognitoClient()).thenReturn(cognitoClient);
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
 
         UserPoolClientType userPoolClient = UserPoolClientType.builder()
                 .clientId("test-client-id")
@@ -93,7 +93,7 @@ class CognitoServiceImplTest {
     void testGenerateClientFailure() {
         String clientName = "test-client";
 
-        when(awsClientConf.getCognitoClient()).thenReturn(cognitoClient);
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
 
         doThrow(new RuntimeException("Simulated failure")).when(cognitoClient)
                 .createUserPoolClient(any(CreateUserPoolClientRequest.class));
@@ -119,7 +119,7 @@ class CognitoServiceImplTest {
                 .userPoolClient(userPoolClient)
                 .build();
 
-        when(awsClientConf.getCognitoClient()).thenReturn(cognitoClient);
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
         when(cognitoClient.describeUserPoolClient(any(DescribeUserPoolClientRequest.class)))
                 .thenReturn(response);
 
@@ -136,7 +136,7 @@ class CognitoServiceImplTest {
     void testDeleteClientSuccess() {
         String clientId = "test-client-id";
 
-        when(awsClientConf.getCognitoClient()).thenReturn(cognitoClient);
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
 
         Uni<Void> resultUni = cognitoService.deleteClient(clientId);
 
@@ -147,7 +147,7 @@ class CognitoServiceImplTest {
     void testDeleteClientFailure() {
         String clientId = "test-client-id";
 
-        when(awsClientConf.getCognitoClient()).thenReturn(cognitoClient);
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
         when(cognitoClient.deleteUserPoolClient(any(DeleteUserPoolClientRequest.class)))
                 .thenThrow(new RuntimeException("Simulated failure"));
 

@@ -1,6 +1,7 @@
 package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 
 import io.smallrye.mutiny.Uni;
+import it.gov.pagopa.atmlayer.service.userservice.configuration.ApiGatewayClientConf;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
@@ -14,10 +15,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.apigateway.ApiGatewayClient;
 import software.amazon.awssdk.services.apigateway.model.*;
 
 import java.util.ArrayList;
@@ -29,21 +26,14 @@ import static it.gov.pagopa.atmlayer.service.userservice.enums.UsagePlanPatchOpe
 @ApplicationScoped
 @Slf4j
 public class ApiKeyServiceImpl implements ApiKeyService {
-    private final ApiGatewayClient apiGatewayClient;
+    @Inject
+    ApiGatewayClientConf apiGatewayClientConf;
     @ConfigProperty(name = "api-gateway.id")
     String apiGatewayId;
     @ConfigProperty(name = "app.environment")
     String apiGatewayStage;
     @Inject
     ApiKeyMapper mapper;
-
-    public ApiKeyServiceImpl() {
-        this.apiGatewayClient = ApiGatewayClient.builder()
-                .httpClient(ApacheHttpClient.builder().build())
-                .region(Region.EU_SOUTH_1)
-                .credentialsProvider(WebIdentityTokenFileCredentialsProvider.create())
-                .build();
-    }
 
     @Override
     public Uni<ApiKeyDTO> createApiKey(String clientName) {
@@ -52,7 +42,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .name(clientName + "-api-key")
                     .enabled(true)
                     .build();
-            CreateApiKeyResponse response = apiGatewayClient.createApiKey(request);
+            CreateApiKeyResponse response = apiGatewayClientConf.getApiGatewayClient().createApiKey(request);
             if (response.sdkFields().isEmpty()) {
                 throw new AtmLayerException("La richiesta di CreateApiKey su AWS non è andata a buon fine", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
@@ -67,7 +57,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .apiKey(apiKeyId)
                     .includeValue(true)
                     .build();
-            GetApiKeyResponse response = apiGatewayClient.getApiKey(request);
+            GetApiKeyResponse response = apiGatewayClientConf.getApiGatewayClient().getApiKey(request);
             if (response.sdkFields().isEmpty()) {
                 throw new AtmLayerException("ApiKey non trovata", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
@@ -81,7 +71,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             DeleteApiKeyRequest request = DeleteApiKeyRequest.builder()
                     .apiKey(apiKeyId)
                     .build();
-            apiGatewayClient.deleteApiKey(request);
+            apiGatewayClientConf.getApiGatewayClient().deleteApiKey(request);
             return null;
         }).onFailure().invoke(th -> log.error("Failed to delete usage plan with id: {}", apiKeyId, th)).replaceWithVoid();
     }
@@ -105,7 +95,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
             CreateUsagePlanRequest usagePlanRequest = usagePlanRequestBuilder.build();
 
-            CreateUsagePlanResponse usagePlanResponse = apiGatewayClient.createUsagePlan(usagePlanRequest);
+            CreateUsagePlanResponse usagePlanResponse = apiGatewayClientConf.getApiGatewayClient().createUsagePlan(usagePlanRequest);
 
             UsagePlanDTO usagePlan = mapper.usagePlanCreateToDto(usagePlanResponse);
 
@@ -114,7 +104,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .keyId(apiKeyId)
                     .keyType("API_KEY")
                     .build();
-            apiGatewayClient.createUsagePlanKey(usagePlanKeyRequest);
+            apiGatewayClientConf.getApiGatewayClient().createUsagePlanKey(usagePlanKeyRequest);
 
             log.info("Usage plan: {}", usagePlan);
             return usagePlan;
@@ -128,7 +118,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .usagePlanId(usagePlanId)
                     .build();
 
-            GetUsagePlanResponse usagePlanResponse = apiGatewayClient.getUsagePlan(usagePlanRequest);
+            GetUsagePlanResponse usagePlanResponse = apiGatewayClientConf.getApiGatewayClient().getUsagePlan(usagePlanRequest);
             return mapper.usagePlanGetToDto(usagePlanResponse);
         });
     }
@@ -140,7 +130,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .usagePlanId(usagePlanId)
                     .patchOperations(buildPatchOperation(usagePlanUpdateDTO))
                     .build();
-            UpdateUsagePlanResponse updatedPlan = apiGatewayClient.updateUsagePlan(updateUsagePlanRequest);
+            UpdateUsagePlanResponse updatedPlan = apiGatewayClientConf.getApiGatewayClient().updateUsagePlan(updateUsagePlanRequest);
             return mapper.usagePlanUpdateToDto(updatedPlan);
 
         }).onFailure().transform(error -> new AtmLayerException("La richiesta di UpdateUsagePlan su AWS non è andata a buon fine", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR));
@@ -178,13 +168,13 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .usagePlanId(usagePlanId)
                     .patchOperations(patchOperations)
                     .build();
-            apiGatewayClient.updateUsagePlan(updateUsagePlanRequest);
+            apiGatewayClientConf.getApiGatewayClient().updateUsagePlan(updateUsagePlanRequest);
 
             DeleteUsagePlanRequest usagePlanRequest = DeleteUsagePlanRequest.builder()
                     .usagePlanId(usagePlanId)
                     .build();
 
-            DeleteUsagePlanResponse usagePlanResponse = apiGatewayClient.deleteUsagePlan(usagePlanRequest);
+            DeleteUsagePlanResponse usagePlanResponse = apiGatewayClientConf.getApiGatewayClient().deleteUsagePlan(usagePlanRequest);
 
             log.info("Usage plan: {}", usagePlanResponse);
             return null;

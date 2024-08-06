@@ -1,8 +1,7 @@
 package it.gov.pagopa.atmlayer.service.userservice.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.smallrye.mutiny.Uni;
-import it.gov.pagopa.atmlayer.service.userservice.configuration.AwsClientConf;
+import it.gov.pagopa.atmlayer.service.userservice.configuration.CognitoClientConf;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
@@ -19,10 +18,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 @Slf4j
 public class CognitoServiceImpl implements CognitoService {
     @Inject
-    AwsClientConf awsClientConf;
-
-    @Inject
-    ObjectMapper objectMapper;
+    CognitoClientConf cognitoClientConf;
 
     @ConfigProperty(name = "cognito.user-pool.id")
     String userPoolId;
@@ -39,7 +35,7 @@ public class CognitoServiceImpl implements CognitoService {
                     .build();
             UserPoolClientType client = null;
             try {
-                DescribeUserPoolClientResponse response = awsClientConf.getCognitoClient().describeUserPoolClient(request);
+                DescribeUserPoolClientResponse response = cognitoClientConf.getCognitoClient().describeUserPoolClient(request);
                 client = response.userPoolClient();
                 log.info("Client value: {}", client);
             } catch (Exception e) {
@@ -72,7 +68,7 @@ public class CognitoServiceImpl implements CognitoService {
                     .build();
             UserPoolClientType client = null;
             try {
-                CreateUserPoolClientResponse response = awsClientConf.getCognitoClient().createUserPoolClient(request);
+                CreateUserPoolClientResponse response = cognitoClientConf.getCognitoClient().createUserPoolClient(request);
                 client = response.userPoolClient();
                 log.info("Client value: {}", client);
             } catch (Exception e) {
@@ -101,7 +97,7 @@ public class CognitoServiceImpl implements CognitoService {
                 .build();
         UserPoolClientType client = null;
         try {
-            UpdateUserPoolClientResponse response = awsClientConf.getCognitoClient().updateUserPoolClient(request);
+            UpdateUserPoolClientResponse response = cognitoClientConf.getCognitoClient().updateUserPoolClient(request);
             client = response.userPoolClient();
             log.info("Client value: {}", client);
         } catch (Exception e) {
@@ -125,7 +121,7 @@ public class CognitoServiceImpl implements CognitoService {
                     .userPoolId(userPoolId)
                     .clientId(clientId)
                     .build();
-            awsClientConf.getCognitoClient().deleteUserPoolClient(request);
+            cognitoClientConf.getCognitoClient().deleteUserPoolClient(request);
             log.info("Client with ID {} deleted successfully", clientId);
             return null;
 
