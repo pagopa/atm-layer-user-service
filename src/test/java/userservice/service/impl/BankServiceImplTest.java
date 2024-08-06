@@ -4,11 +4,15 @@ import io.quarkus.hibernate.reactive.panache.PanacheQuery;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
+import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
+import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
+import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
+import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.repository.BankRepository;
 import it.gov.pagopa.atmlayer.service.userservice.service.ApiKeyService;
 import it.gov.pagopa.atmlayer.service.userservice.service.CognitoService;
@@ -23,7 +27,6 @@ import org.mockito.MockitoAnnotations;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -44,6 +47,64 @@ class BankServiceImplTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testGetStaticAWSInfo2() {
+        BankEntity bankEntity = new BankEntity();
+        bankEntity.setApiKeyId("test-api-key-id");
+        bankEntity.setClientId("test-client-id");
+
+        UsagePlanDTO usagePlanDto = new UsagePlanDTO();
+
+        ApiKeyDTO apiKeyDto = new ApiKeyDTO();
+        ClientCredentialsDTO clientDto = new ClientCredentialsDTO();
+        BankPresentationDTO bankPresentationDTO = new BankPresentationDTO();
+
+        when(apiKeyService.getApiKey("test-api-key-id")).thenReturn(Uni.createFrom().item(apiKeyDto));
+        when(cognitoService.getClientCredentials("test-client-id")).thenReturn(Uni.createFrom().item(clientDto));
+        when(bankMapper.toPresentationDTO(any(BankEntity.class), any(ApiKeyDTO.class), any(ClientCredentialsDTO.class), any(UsagePlanDTO.class)))
+                .thenReturn(bankPresentationDTO);
+
+        Uni<BankPresentationDTO> resultUni = bankService.getStaticAWSInfo(bankEntity, usagePlanDto);
+
+        resultUni.subscribe().with(
+                result -> {
+                    assertNotNull(result);
+                    assertEquals(bankPresentationDTO, result);
+                },
+                failure -> {
+                    throw new AssertionError("Test failed with exception: " + failure.getMessage());
+                }
+        );
+    }
+
+    @Test
+    void testGetStaticAWSInfo3() {
+        BankEntity bankEntity = new BankEntity();
+        bankEntity.setApiKeyId("test-api-key-id");
+
+        ClientCredentialsDTO clientDto = new ClientCredentialsDTO();
+        UsagePlanDTO usagePlanDto = new UsagePlanDTO();
+
+        ApiKeyDTO apiKeyDto = new ApiKeyDTO();
+        BankPresentationDTO bankPresentationDTO = new BankPresentationDTO();
+
+        when(apiKeyService.getApiKey("test-api-key-id")).thenReturn(Uni.createFrom().item(apiKeyDto));
+        when(bankMapper.toPresentationDTO(any(BankEntity.class), any(ApiKeyDTO.class), any(ClientCredentialsDTO.class), any(UsagePlanDTO.class)))
+                .thenReturn(bankPresentationDTO);
+
+        Uni<BankPresentationDTO> resultUni = bankService.getStaticAWSInfo(bankEntity, clientDto, usagePlanDto);
+
+        resultUni.subscribe().with(
+                result -> {
+                    assertNotNull(result);
+                    assertEquals(bankPresentationDTO, result);
+                },
+                failure -> {
+                    throw new AssertionError("Test failed with exception: " + failure.getMessage());
+                }
+        );
     }
 
     @Test

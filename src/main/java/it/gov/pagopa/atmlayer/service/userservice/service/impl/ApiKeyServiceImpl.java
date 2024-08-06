@@ -28,12 +28,13 @@ import static it.gov.pagopa.atmlayer.service.userservice.enums.UsagePlanPatchOpe
 public class ApiKeyServiceImpl implements ApiKeyService {
     @Inject
     ApiGatewayClientConf apiGatewayClientConf;
+    @Inject
+    ApiKeyMapper mapper;
     @ConfigProperty(name = "api-gateway.id")
     String apiGatewayId;
     @ConfigProperty(name = "app.environment")
     String apiGatewayStage;
-    @Inject
-    ApiKeyMapper mapper;
+
 
     @Override
     public Uni<ApiKeyDTO> createApiKey(String clientName) {
@@ -46,7 +47,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             if (response.sdkFields().isEmpty()) {
                 throw new AtmLayerException("La richiesta di CreateApiKey su AWS non è andata a buon fine", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
-            return new ApiKeyDTO(response.id(), response.value(), response.name()); // La chiave API viene restituita come ID
+            return new ApiKeyDTO(response.id(), response.value(), response.name());
         });
     }
 
@@ -144,7 +145,6 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             throw new AtmLayerException("Non è possibile specificare solo uno tra quota limit e quota period", Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
         }
         log.info("-------- preparing patchOperations");
-        // Build patch operations to update the usage plan
         List<PatchOperation> patchOperations = new ArrayList<>();
         Optional.ofNullable(updateDTO.getQuotaLimit()).ifPresentOrElse(
                 quotaLimit -> patchOperations.add(PatchOperation.builder().op(Op.REPLACE).path(QUOTA_LIMIT.getPath()).value(String.valueOf(quotaLimit)).build()),
