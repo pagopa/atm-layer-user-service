@@ -135,6 +135,116 @@ class BankServiceImplTest {
     }
 
     @Test
+    void testInsertBank_disabledBank() {
+        BankInsertionDTO bankInsertionDTO = new BankInsertionDTO();
+        bankInsertionDTO.setAcquirerId("123");
+        bankInsertionDTO.setDenomination("Test Denomination");
+        BankEntity bankEntity = new BankEntity();
+        bankEntity.setAcquirerId("123");
+        bankEntity.setDenomination("Test Denomination");
+        bankEntity.setEnabled(false);
+        ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
+        clientCredentialsDTO.setClientId("client-id");
+        clientCredentialsDTO.setClientSecret("client-secret");
+        clientCredentialsDTO.setClientName("Test Client");
+        UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
+        usagePlanDTO.setId("usage-plan-id");
+        ApiKeyDTO apiKeyDTO = new ApiKeyDTO("api-key-id", "api-key-value", "Test API Key");
+
+        when(bankRepository.findAllById(any(String.class)))
+                .thenReturn(Uni.createFrom().item(Collections.singletonList(bankEntity)));
+        when(cognitoService.generateClient(any(String.class)))
+                .thenReturn(Uni.createFrom().item(clientCredentialsDTO));
+        when(apiKeyService.createApiKey(any(String.class)))
+                .thenReturn(Uni.createFrom().item(apiKeyDTO));
+        when(apiKeyService.createUsagePlan(any(BankInsertionDTO.class), any(String.class)))
+                .thenReturn(Uni.createFrom().item(usagePlanDTO));
+        when(bankMapper.toEntityInsertion(any(BankInsertionDTO.class)))
+                .thenReturn(bankEntity);
+        when(bankRepository.persist(any(BankEntity.class)))
+                .thenReturn(Uni.createFrom().item(bankEntity));
+        when(bankMapper.toPresentationDTO(any(BankEntity.class), any(ApiKeyDTO.class), any(ClientCredentialsDTO.class), any(UsagePlanDTO.class)))
+                .thenReturn(new BankPresentationDTO());
+
+        bankService.insertBank(bankInsertionDTO)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted();
+    }
+
+    @Test
+    void testInsertBank_rollback(){
+        BankInsertionDTO bankInsertionDTO = new BankInsertionDTO();
+        bankInsertionDTO.setAcquirerId("123");
+        bankInsertionDTO.setDenomination("Test Denomination");
+        BankEntity bankEntity = new BankEntity();
+        bankEntity.setAcquirerId("123");
+        bankEntity.setDenomination("Test Denomination");
+        ClientCredentialsDTO clientCredentialsDTO;
+        clientCredentialsDTO = new ClientCredentialsDTO();
+        clientCredentialsDTO.setClientId("client-id");
+        clientCredentialsDTO.setClientSecret("client-secret");
+        clientCredentialsDTO.setClientName("Test Client");
+        ApiKeyDTO apiKeyDTO = new ApiKeyDTO("api-key-id", "api-key-value", "Test API Key");
+        UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
+        usagePlanDTO.setId("usage-plan-id");
+
+        when(bankRepository.findAllById(any(String.class)))
+                .thenReturn(Uni.createFrom().item(Collections.emptyList()));
+        when(cognitoService.generateClient(any(String.class)))
+                .thenReturn(Uni.createFrom().item(clientCredentialsDTO));
+        when(apiKeyService.createApiKey(any(String.class)))
+                .thenReturn(Uni.createFrom().item(apiKeyDTO));
+        when(apiKeyService.createUsagePlan(any(BankInsertionDTO.class), any(String.class)))
+                .thenReturn(Uni.createFrom().item(usagePlanDTO));
+        when(bankMapper.toEntityInsertion(any(BankInsertionDTO.class)))
+                .thenReturn(bankEntity);
+        when(bankRepository.persist(any(BankEntity.class)))
+                .thenThrow(new RuntimeException("something went wrong"));
+
+        bankService.insertBank(bankInsertionDTO)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(AtmLayerException.class, "something went wrong");
+    }
+
+    @Test
+    void testUpdateBankSuccess_sameName() {
+        BankUpdateDTO input = new BankUpdateDTO();
+        input.setAcquirerId("test-acquirer-id");
+        input.setDenomination("Denomination");
+        input.setRateLimit(100.0);
+        input.setBurstLimit(50);
+        input.setLimit(1000);
+        input.setPeriod(QuotaPeriodType.MONTH);
+
+        BankEntity bankEntity = new BankEntity();
+        bankEntity.setDenomination("Denomination");
+        bankEntity.setClientId("client-id");
+        bankEntity.setApiKeyId("api-key-id");
+        bankEntity.setUsagePlanId("usage-plan-id");
+
+        UsagePlanDTO usagePlanDto = new UsagePlanDTO();
+        ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
+        BankPresentationDTO bankPresentationDTO = new BankPresentationDTO();
+
+        when(bankRepository.findById(input.getAcquirerId())).thenReturn(Uni.createFrom().item(bankEntity));
+        when(apiKeyService.updateUsagePlan(anyString(), any())).thenReturn(Uni.createFrom().item(usagePlanDto));
+        when(apiKeyService.getApiKey(anyString())).thenReturn(Uni.createFrom().item(new ApiKeyDTO()));
+        when(cognitoService.getClientCredentials(anyString())).thenReturn(Uni.createFrom().item(clientCredentialsDTO));
+        when(bankMapper.toPresentationDTO(any(), any(), any(), any())).thenReturn(bankPresentationDTO);
+
+        Uni<BankPresentationDTO> resultUni = bankService.updateBank(input);
+        BankPresentationDTO result = resultUni.await().indefinitely();
+
+        assertNotNull(result, "The result should not be null");
+        assertEquals(bankPresentationDTO, result, "The result should match the expected BankPresentationDTO");
+
+        verify(bankRepository).findById(input.getAcquirerId());
+        verify(apiKeyService).updateUsagePlan(anyString(), any());
+        verify(apiKeyService).getApiKey(anyString());
+        verify(bankMapper).toPresentationDTO(any(), any(), any(), any());
+    }
+
+    @Test
     void testUpdateBankSuccess_differentName() {
         BankUpdateDTO input = new BankUpdateDTO();
         input.setAcquirerId("test-acquirer-id");
@@ -176,6 +286,47 @@ class BankServiceImplTest {
         verify(bankMapper).toPresentationDTO(any(), any(), any(), any());
 
         verifyNoMoreInteractions(bankRepository, apiKeyService, cognitoService, bankMapper);
+    }
+
+    @Test
+    void testUpdateBank_rollback() {
+        BankUpdateDTO input = new BankUpdateDTO();
+        input.setAcquirerId("test-acquirer-id");
+        input.setDenomination("New Denomination");
+        input.setRateLimit(100.0);
+        input.setBurstLimit(50);
+        input.setLimit(1000);
+        input.setPeriod(QuotaPeriodType.MONTH);
+
+        BankEntity bankEntity = new BankEntity();
+        bankEntity.setDenomination("Old Denomination");
+        bankEntity.setClientId("client-id");
+        bankEntity.setApiKeyId("api-key-id");
+        bankEntity.setUsagePlanId("usage-plan-id");
+
+        when(bankRepository.findById(input.getAcquirerId())).thenReturn(Uni.createFrom().item(bankEntity));
+        when(bankRepository.persist(any(BankEntity.class))).thenReturn(Uni.createFrom().item(bankEntity));
+
+        when(apiKeyService.updateUsagePlan(anyString(), any())).thenThrow(new RuntimeException("something went wrong"));
+
+        when(cognitoService.updateClientName(anyString(), anyString())).thenReturn(Uni.createFrom().item(new ClientCredentialsDTO()));
+        when(apiKeyService.getApiKey(anyString())).thenReturn(Uni.createFrom().item(new ApiKeyDTO()));
+        when(cognitoService.getClientCredentials(anyString())).thenReturn(Uni.createFrom().item(new ClientCredentialsDTO()));
+        when(bankMapper.toPresentationDTO(any(), any(), any(), any())).thenReturn(new BankPresentationDTO());
+
+        bankService.updateBank(input)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(AtmLayerException.class, "something went wrong");
+    }
+
+    @Test
+    void testUpdateBank_bankNotFound() {
+        when(bankRepository.findById(any(String.class))).thenReturn(Uni.createFrom().nullItem());
+        BankUpdateDTO bankUpdateDTO = new BankUpdateDTO();
+        bankUpdateDTO.setAcquirerId("acquirerId");
+        bankService.updateBank(bankUpdateDTO)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(AtmLayerException.class, AppErrorCodeEnum.BANK_NOT_FOUND.getErrorMessage());
     }
 
     @Test
