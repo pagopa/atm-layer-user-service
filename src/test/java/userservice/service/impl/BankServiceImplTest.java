@@ -178,37 +178,6 @@ class BankServiceImplTest {
         verifyNoMoreInteractions(bankRepository, apiKeyService, cognitoService, bankMapper);
     }
 
-
-
-    /*@Test
-    void testFindByAcquirerIdSuccess() {
-        String acquirerId = "test-acquirer-id";
-
-        BankEntity bankEntity = new BankEntity();
-        UsagePlanDTO usagePlanDto = new UsagePlanDTO();
-        ApiKeyDTO apiKeyDto = new ApiKeyDTO();
-        ClientCredentialsDTO clientDto = new ClientCredentialsDTO();
-        BankPresentationDTO bankPresentationDTO = new BankPresentationDTO();
-
-        when(bankRepository.findById(acquirerId)).thenReturn(Uni.createFrom().item(bankEntity));
-        when(apiKeyService.getUsagePlan(anyString())).thenReturn(Uni.createFrom().item(usagePlanDto));
-        when(apiKeyService.getApiKey(anyString())).thenReturn(Uni.createFrom().item(apiKeyDto));
-        when(cognitoService.getClientCredentials(anyString())).thenReturn(Uni.createFrom().item(clientDto));
-        when(bankMapper.toPresentationDTO(bankEntity, apiKeyDto, clientDto, usagePlanDto))
-                .thenReturn(bankPresentationDTO);
-
-        Uni<BankPresentationDTO> resultUni = bankService.findByAcquirerId(acquirerId);
-        BankPresentationDTO result = resultUni.await().indefinitely();
-
-        assertNotNull(result, "The result should not be null");
-        assertEquals(bankPresentationDTO, result, "The result should match the expected BankPresentationDTO");
-        verify(bankRepository).findById(acquirerId);
-        verify(apiKeyService).getUsagePlan(anyString());
-        verify(apiKeyService).getApiKey(anyString());
-        verify(cognitoService).getClientCredentials(anyString());
-        verify(bankMapper).toPresentationDTO(bankEntity, apiKeyDto, clientDto, usagePlanDto);
-    }*/
-
     @Test
     void testFindByAcquirerId_BankEntityNotFound() {
         String acquirerId = "non-existent-id";

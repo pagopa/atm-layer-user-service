@@ -15,10 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.apigateway.ApiGatewayClient;
 import software.amazon.awssdk.services.apigateway.model.*;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,6 +39,9 @@ class ApiKeyServiceImplTest {
 
     @InjectMocks
     private ApiKeyServiceImpl apiKeyService;
+
+    @Spy
+    private Logger log = LoggerFactory.getLogger(ApiKeyServiceImpl.class);
 
     @BeforeEach
     void setUp() {
@@ -246,7 +251,7 @@ class ApiKeyServiceImplTest {
         verify(mapper, never()).usagePlanGetToDto(any());
     }
 
-   @Test
+    @Test
     void testCreateUsagePlanSuccess() {
         String apiKeyId = "apiKey123";
         BankInsertionDTO bankInsertionDTO = new BankInsertionDTO();
@@ -257,13 +262,6 @@ class ApiKeyServiceImplTest {
         bankInsertionDTO.setRateLimit(10.5);
 
         String usagePlanId = "plan123";
-        CreateUsagePlanRequest usagePlanRequest = CreateUsagePlanRequest.builder()
-                .name("Test Bank-plan")
-                .description("Usage plan for Test Bank")
-                .quota(q -> q.limit(1000).period(QuotaPeriodType.MONTH))
-                .throttle(t -> t.burstLimit(200).rateLimit(10.5))
-                .apiStages(ApiStage.builder().apiId("apiGatewayId").stage("apiGatewayStage").build())
-                .build();
 
         CreateUsagePlanResponse usagePlanResponse = CreateUsagePlanResponse.builder()
                 .id(usagePlanId)
@@ -281,12 +279,6 @@ class ApiKeyServiceImplTest {
         when(apiGatewayClient.createUsagePlan(any(CreateUsagePlanRequest.class))).thenReturn(usagePlanResponse);
         when(mapper.usagePlanCreateToDto(any(CreateUsagePlanResponse.class))).thenReturn(usagePlanDTO);
 
-        CreateUsagePlanKeyRequest usagePlanKeyRequest = CreateUsagePlanKeyRequest.builder()
-                .usagePlanId(usagePlanId)
-                .keyId(apiKeyId)
-                .keyType("API_KEY")
-                .build();
-
         Uni<UsagePlanDTO> usagePlanDTOSubscription = apiKeyService.createUsagePlan(bankInsertionDTO, apiKeyId);
 
         usagePlanDTOSubscription.subscribe().with(dto -> {
@@ -302,6 +294,79 @@ class ApiKeyServiceImplTest {
         verify(apiGatewayClient).createUsagePlan(any(CreateUsagePlanRequest.class));
         verify(apiGatewayClient).createUsagePlanKey(any(CreateUsagePlanKeyRequest.class));
         verify(mapper).usagePlanCreateToDto(any(CreateUsagePlanResponse.class));
+    }
+
+    @Test
+    void testUpdateUsagePlanSuccess() {
+        String usagePlanId = "plan123";
+        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
+        updateDTO.setRateLimit(15.0);
+        updateDTO.setBurstLimit(300);
+
+        UpdateUsagePlanResponse updateUsagePlanResponse = UpdateUsagePlanResponse.builder()
+                .build();
+
+        UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
+        usagePlanDTO.setId(usagePlanId);
+        usagePlanDTO.setRateLimit(15.0);
+        usagePlanDTO.setBurstLimit(300);
+
+        when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
+        when(apiGatewayClient.updateUsagePlan(any(UpdateUsagePlanRequest.class))).thenReturn(updateUsagePlanResponse);
+        when(mapper.usagePlanUpdateToDto(any(UpdateUsagePlanResponse.class))).thenReturn(usagePlanDTO);
+
+        Uni<UsagePlanDTO> resultUni = apiKeyService.updateUsagePlan(usagePlanId, updateDTO);
+
+        resultUni.subscribe().with(result -> {
+            assertNotNull(result);
+            assertEquals(usagePlanId, result.getId());
+            assertEquals(15.0, result.getRateLimit());
+            assertEquals(300, result.getBurstLimit());
+        }, throwable -> fail("Expected no exception, but got: " + throwable));
+
+        verify(apiGatewayClient).updateUsagePlan(any(UpdateUsagePlanRequest.class));
+        verify(mapper).usagePlanUpdateToDto(any(UpdateUsagePlanResponse.class));
+    }
+
+    @Test
+    void testDeleteUsagePlanSuccess() {
+        String usagePlanId = "plan123";
+
+        DeleteUsagePlanResponse deleteUsagePlanResponse = DeleteUsagePlanResponse.builder().build();
+        UpdateUsagePlanResponse updateUsagePlanResponse = UpdateUsagePlanResponse.builder().build();
+
+        when(apiGatewayClient.updateUsagePlan(any(UpdateUsagePlanRequest.class))).thenReturn(updateUsagePlanResponse);
+        when(apiGatewayClient.deleteUsagePlan(any(DeleteUsagePlanRequest.class))).thenReturn(deleteUsagePlanResponse);
+
+        Uni<Void> result = apiKeyService.deleteUsagePlan(usagePlanId);
+
+        result.subscribe().with(
+                item -> {
+                    verify(apiGatewayClient).updateUsagePlan(any(UpdateUsagePlanRequest.class));
+                    verify(apiGatewayClient).deleteUsagePlan(any(DeleteUsagePlanRequest.class));
+                    verify(log).info(contains("Usage plan:"));
+                },
+                throwable -> {
+                    fail("Expected no exception, but got: " + throwable);
+                }
+        );
+    }
+
+    @Test
+    void testDeleteUsagePlanFailure() {
+        String usagePlanId = "plan123";
+
+        when(apiGatewayClient.updateUsagePlan(any(UpdateUsagePlanRequest.class)))
+                .thenThrow(new RuntimeException("Update failed"));
+
+        Uni<Void> result = apiKeyService.deleteUsagePlan(usagePlanId);
+
+        result.subscribe().with(
+                item -> fail("Expected exception but got success"),
+                throwable -> {
+                    verify(log).error(contains("Failed to delete usage plan with id:"));
+                }
+        );
     }
 
     @Test

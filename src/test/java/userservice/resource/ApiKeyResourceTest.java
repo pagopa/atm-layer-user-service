@@ -131,5 +131,4 @@ class ApiKeyResourceTest {
         verify(apiKeyService, times(1)).createApiKey(clientName);
     }
 
-
 }

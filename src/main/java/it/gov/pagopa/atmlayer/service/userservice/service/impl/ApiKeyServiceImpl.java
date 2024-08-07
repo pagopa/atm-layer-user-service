@@ -20,7 +20,6 @@ import software.amazon.awssdk.services.apigateway.model.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static it.gov.pagopa.atmlayer.service.userservice.enums.UsagePlanPatchOperations.*;
 

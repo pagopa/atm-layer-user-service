@@ -2,6 +2,7 @@ package userservice.resource;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.common.mapper.TypeRef;
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
@@ -9,6 +10,7 @@ import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
+import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,88 @@ class BankResourceTest {
 
     @InjectMock
     BankMapper bankMapper;
+
+    @Test
+    void testSearch() {
+        // Dati di test per la risposta del servizio
+        List<BankEntity> bankList = new ArrayList<>();
+        BankEntity bank = new BankEntity(); // Crea un oggetto Bank e imposta le sue proprietà se necessario
+        bankList.add(bank);
+        PageInfo<BankEntity> pageInfoEntity = new PageInfo<>(0, 10, 1, 1, bankList);
+
+        // Dati di test per il mapping a DTO
+        List<BankDTO> dtoList = new ArrayList<>();
+        BankDTO bankDTO = new BankDTO(); // Crea un oggetto BankDTO e imposta le sue proprietà se necessario
+        dtoList.add(bankDTO);
+        PageInfo<BankDTO> pageInfoDTO = new PageInfo<>(0, 10, 1, 1, dtoList);
+
+        // Mock dei servizi
+        when(bankService.searchBanks(anyInt(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Uni.createFrom().item(pageInfoEntity));
+        when(bankMapper.toDtoPaged(any(PageInfo.class))).thenReturn(pageInfoDTO);
+
+        // Esecuzione della richiesta e verifica del risultato
+        PageInfo<BankDTO> result = given()
+                .when()
+                .queryParam("pageIndex", 0)
+                .queryParam("pageSize", 10)
+                .queryParam("acquirerId", "acquirerId")
+                .queryParam("denomination", "denomination")
+                .queryParam("clientId", "clientId")
+                .get("/api/v1/user-service/banks/search")
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .as(new TypeRef<>() {});
+
+        // Verifica che i risultati corrispondano a quelli aspettati
+        assertEquals(dtoList.size(), result.getResults().size());
+        assertEquals(pageInfoDTO.getItemsFound(), result.getItemsFound());
+        assertEquals(pageInfoDTO.getTotalPages(), result.getTotalPages());
+
+        // Verifica che i servizi siano stati chiamati esattamente una volta
+        verify(bankService, times(1)).searchBanks(anyInt(), anyInt(), anyString(), anyString(), anyString());
+        verify(bankMapper, times(1)).toDtoPaged(any(PageInfo.class));
+    }
+
+    @Test
+    void testSearchEmptyList() {
+        // Dati di test per la risposta del servizio con lista vuota
+        List<BankEntity> bankList = new ArrayList<>();
+        PageInfo<BankEntity> pageInfoEntity = new PageInfo<>(0, 10, 0, 1, bankList);
+
+        // Dati di test per il mapping a DTO
+        List<BankDTO> dtoList = new ArrayList<>();
+        PageInfo<BankDTO> pageInfoDTO = new PageInfo<>(0, 10, 0, 1, dtoList);
+
+        // Mock dei servizi
+        when(bankService.searchBanks(anyInt(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Uni.createFrom().item(pageInfoEntity));
+        when(bankMapper.toDtoPaged(any(PageInfo.class))).thenReturn(pageInfoDTO);
+
+        // Esecuzione della richiesta e verifica del risultato
+        PageInfo<BankDTO> result = given()
+                .when()
+                .queryParam("pageIndex", 0)
+                .queryParam("pageSize", 10)
+                .queryParam("acquirerId", "acquirerId")
+                .queryParam("denomination", "denomination")
+                .queryParam("clientId", "clientId")
+                .get("/api/v1/user-service/banks/search")
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .as(new TypeRef<>() {});
+
+        // Verifica che i risultati siano vuoti
+        assertEquals(0, result.getResults().size());
+        assertEquals(pageInfoDTO.getItemsFound(), result.getItemsFound());
+        assertEquals(pageInfoDTO.getTotalPages(), result.getTotalPages());
+
+        // Verifica che i servizi siano stati chiamati esattamente una volta
+        verify(bankService, times(1)).searchBanks(anyInt(), anyInt(), anyString(), anyString(), anyString());
+        verify(bankMapper, times(1)).toDtoPaged(any(PageInfo.class));
+    }
 
     @Test
     void testInsert() {

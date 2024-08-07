@@ -248,6 +248,20 @@ class UserServiceImplTest {
     }
 
     @Test
+    void testUpdateWithProfilesFailOnUserProfilesUpdate() {
+        when(userProfilesService.updateUserProfiles(any())).thenReturn(Uni.createFrom().failure(new RuntimeException("Error")));
+        when(userMapper.toEntityInsertionWithProfiles(any(UserInsertionWithProfilesDTO.class))).thenReturn(user);
+
+        Uni<User> result = userServiceImpl.updateWithProfiles(userInsertionWithProfilesDTO);
+
+        result.subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(RuntimeException.class, "Error");
+
+        verify(userProfilesService).updateUserProfiles(any());
+        verify(userRepository, never()).persist(any(User.class));
+    }
+
+    @Test
     void testGetById() {
         String userId = "existentId";
         User user = new User();
