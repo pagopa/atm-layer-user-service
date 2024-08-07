@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.apigateway.model.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static it.gov.pagopa.atmlayer.service.userservice.enums.UsagePlanPatchOperations.*;
 
@@ -105,8 +106,26 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .keyId(apiKeyId)
                     .keyType("API_KEY")
                     .build();
-            apiGatewayClientConf.getApiGatewayClient().createUsagePlanKey(usagePlanKeyRequest);
+            try {
+                apiGatewayClientConf.getApiGatewayClient().createUsagePlanKey(usagePlanKeyRequest);
+            } catch (Exception e) {
+                List<PatchOperation> patchOperations = new ArrayList<>();
+                patchOperations.add(PatchOperation.builder().op(Op.REMOVE).path("/apiStages").value(apiGatewayId + ":" + apiGatewayStage).build());
+                UpdateUsagePlanRequest updateUsagePlanRequest = UpdateUsagePlanRequest.builder()
+                        .usagePlanId(usagePlan.getId())
+                        .patchOperations(patchOperations)
+                        .build();
+                apiGatewayClientConf.getApiGatewayClient().updateUsagePlan(updateUsagePlanRequest);
 
+                DeleteUsagePlanRequest deleteUsagePlanRequest = DeleteUsagePlanRequest.builder()
+                        .usagePlanId(usagePlan.getId())
+                        .build();
+
+                DeleteUsagePlanResponse deleteUsagePlanResponse = apiGatewayClientConf.getApiGatewayClient().deleteUsagePlan(deleteUsagePlanRequest);
+
+                log.info("Usage plan deleted: {}", deleteUsagePlanResponse);
+                throw new AtmLayerException("La richiesta di CreateUsagePlanKey su AWS non è andata a buon fine", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
+            }
             log.info("Usage plan: {}", usagePlan);
             return usagePlan;
         });
