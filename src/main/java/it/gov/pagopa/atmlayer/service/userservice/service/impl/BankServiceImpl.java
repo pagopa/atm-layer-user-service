@@ -104,31 +104,27 @@ public class BankServiceImpl implements BankService {
     }
 
     @WithTransaction
-    private Uni<Void> rollbackClientCreation(BankEntity bankEntity) {
+    public Uni<Void> rollbackClientCreation(BankEntity bankEntity) {
         return bankRepository.delete(bankEntity)
                 .onItem().invoke(() -> log.info("Rollback: Bank entity deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
     @WithTransaction
-    private Uni<Void> rollbackApiKeyCreation(ClientCredentialsDTO clientCredentials, BankEntity bankEntity) {
+    public Uni<Void> rollbackApiKeyCreation(ClientCredentialsDTO clientCredentials, BankEntity bankEntity) {
         return apiKeyService.deleteApiKey(clientCredentials.getClientId())
                 .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
-                .replaceWith(bankRepository.delete(bankEntity))
-                .onItem().invoke(() -> log.info("Rollback: Bank entity deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
     @WithTransaction
-    private Uni<Void> rollbackUsagePlanCreation(ClientCredentialsDTO clientCredentials, ApiKeyDTO apiKey, BankEntity bankEntity) {
+    public Uni<Void> rollbackUsagePlanCreation(ClientCredentialsDTO clientCredentials, ApiKeyDTO apiKey, BankEntity bankEntity) {
         return apiKeyService.deleteUsagePlan(apiKey.getId())
                 .onItem().invoke(() -> log.info("Rollback: Usage Plan deleted."))
                 .replaceWith(apiKeyService.deleteApiKey(clientCredentials.getClientId()))
                 .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
                 .replaceWith(cognitoService.deleteClient(clientCredentials.getClientId()))
                 .onItem().invoke(() -> log.info("Rollback: Cognito Client deleted."))
-                .replaceWith(bankRepository.delete(bankEntity))
-                .onItem().invoke(() -> log.info("Rollback: Bank entity deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
