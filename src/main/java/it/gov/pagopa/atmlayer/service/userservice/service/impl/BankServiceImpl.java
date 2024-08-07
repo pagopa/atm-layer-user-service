@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,35 +91,39 @@ public class BankServiceImpl implements BankService {
 
                                                         return bankRepository.persist(bankEntity)
                                                                 .onItem()
-                                                                .transform(bank -> bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan));
+                                                                .transform(bank -> bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan))
+                                                                .onFailure().recoverWithUni(throwable -> rollbackUsagePlanCreation(createdClient, apikeyCreated)
+                                                                        .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR))));
+
                                                     })
-                                                    .onFailure().recoverWithUni(throwable -> rollbackUsagePlanCreation(createdClient, apikeyCreated, bankEntity)
-                                                            .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.USAGE_PLAN_CREATION_FAILED))));
+                                                    .onFailure().recoverWithUni(throwable -> rollbackApiKeyCreation(createdClient)
+                                                            .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR))));
                                         })
-                                        .onFailure().recoverWithUni(throwable -> rollbackApiKeyCreation(createdClient, bankEntity)
-                                                .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.API_KEY_CREATION_FAILED))));
+                                        .onFailure().recoverWithUni(throwable -> rollbackAppClientCreation(createdClient)
+                                                .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR))));
                             })
-                            .onFailure().recoverWithUni(throwable -> rollbackClientCreation(bankEntity)
-                                    .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.CLIENT_CREATION_FAILED))));
+                            .onFailure().recoverWithUni(throwable -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR)));
                 });
     }
 
     @WithTransaction
-    public Uni<Void> rollbackClientCreation(BankEntity bankEntity) {
-        return bankRepository.delete(bankEntity)
-                .onItem().invoke(() -> log.info("Rollback: Bank entity deleted."))
+    public Uni<Void> rollbackAppClientCreation(ClientCredentialsDTO clientCredentials) {
+        return cognitoService.deleteClient(clientCredentials.getClientId())
+                .onItem().invoke(() -> log.info("Rollback: Cognito Client deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
     @WithTransaction
-    public Uni<Void> rollbackApiKeyCreation(ClientCredentialsDTO clientCredentials, BankEntity bankEntity) {
+    public Uni<Void> rollbackApiKeyCreation(ClientCredentialsDTO clientCredentials) {
         return apiKeyService.deleteApiKey(clientCredentials.getClientId())
                 .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
+                .replaceWith(cognitoService.deleteClient(clientCredentials.getClientId()))
+                .onItem().invoke(() -> log.info("Rollback: Cognito Client deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
     @WithTransaction
-    public Uni<Void> rollbackUsagePlanCreation(ClientCredentialsDTO clientCredentials, ApiKeyDTO apiKey, BankEntity bankEntity) {
+    public Uni<Void> rollbackUsagePlanCreation(ClientCredentialsDTO clientCredentials, ApiKeyDTO apiKey) {
         return apiKeyService.deleteUsagePlan(apiKey.getId())
                 .onItem().invoke(() -> log.info("Rollback: Usage Plan deleted."))
                 .replaceWith(apiKeyService.deleteApiKey(clientCredentials.getClientId()))
