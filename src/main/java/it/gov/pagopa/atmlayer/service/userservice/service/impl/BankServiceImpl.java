@@ -103,12 +103,14 @@ public class BankServiceImpl implements BankService {
                 });
     }
 
+    @WithTransaction
     private Uni<Void> rollbackClientCreation(BankEntity bankEntity) {
         return bankRepository.delete(bankEntity)
                 .onItem().invoke(() -> log.info("Rollback: Bank entity deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
+    @WithTransaction
     private Uni<Void> rollbackApiKeyCreation(ClientCredentialsDTO clientCredentials, BankEntity bankEntity) {
         return apiKeyService.deleteApiKey(clientCredentials.getClientId())
                 .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
@@ -117,6 +119,7 @@ public class BankServiceImpl implements BankService {
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
+    @WithTransaction
     private Uni<Void> rollbackUsagePlanCreation(ClientCredentialsDTO clientCredentials, ApiKeyDTO apiKey, BankEntity bankEntity) {
         return apiKeyService.deleteUsagePlan(apiKey.getId())
                 .onItem().invoke(() -> log.info("Rollback: Usage Plan deleted."))
