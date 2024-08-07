@@ -92,7 +92,7 @@ public class BankServiceImpl implements BankService {
                                                         return bankRepository.persist(bankEntity)
                                                                 .onItem()
                                                                 .transform(bank -> bankMapper.toPresentationDTO(bankEntity, apikeyCreated, createdClient, associatedUsagePlan))
-                                                                .onFailure().recoverWithUni(throwable -> rollbackUsagePlanCreation(createdClient, apikeyCreated)
+                                                                .onFailure().recoverWithUni(throwable -> rollbackUsagePlanCreation(apikeyCreated)
                                                                         .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR))));
 
                                                     })
@@ -117,19 +117,13 @@ public class BankServiceImpl implements BankService {
     public Uni<Void> rollbackApiKeyCreation(ClientCredentialsDTO clientCredentials) {
         return apiKeyService.deleteApiKey(clientCredentials.getClientId())
                 .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
-                .replaceWith(cognitoService.deleteClient(clientCredentials.getClientId()))
-                .onItem().invoke(() -> log.info("Rollback: Cognito Client deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
     @WithTransaction
-    public Uni<Void> rollbackUsagePlanCreation(ClientCredentialsDTO clientCredentials, ApiKeyDTO apiKey) {
+    public Uni<Void> rollbackUsagePlanCreation(ApiKeyDTO apiKey) {
         return apiKeyService.deleteUsagePlan(apiKey.getId())
                 .onItem().invoke(() -> log.info("Rollback: Usage Plan deleted."))
-                .replaceWith(apiKeyService.deleteApiKey(clientCredentials.getClientId()))
-                .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
-                .replaceWith(cognitoService.deleteClient(clientCredentials.getClientId()))
-                .onItem().invoke(() -> log.info("Rollback: Cognito Client deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
 
