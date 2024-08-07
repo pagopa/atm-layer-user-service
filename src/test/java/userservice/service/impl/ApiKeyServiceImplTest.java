@@ -12,10 +12,7 @@ import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.service.impl.ApiKeyServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.apigateway.ApiGatewayClient;
@@ -43,9 +40,11 @@ class ApiKeyServiceImplTest {
     @Spy
     private Logger log = LoggerFactory.getLogger(ApiKeyServiceImpl.class);
 
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        log = mock(Logger.class);
     }
 
     @Test
@@ -329,47 +328,6 @@ class ApiKeyServiceImplTest {
     }
 
     @Test
-    void testDeleteUsagePlanSuccess() {
-        String usagePlanId = "plan123";
-
-        DeleteUsagePlanResponse deleteUsagePlanResponse = DeleteUsagePlanResponse.builder().build();
-        UpdateUsagePlanResponse updateUsagePlanResponse = UpdateUsagePlanResponse.builder().build();
-
-        when(apiGatewayClient.updateUsagePlan(any(UpdateUsagePlanRequest.class))).thenReturn(updateUsagePlanResponse);
-        when(apiGatewayClient.deleteUsagePlan(any(DeleteUsagePlanRequest.class))).thenReturn(deleteUsagePlanResponse);
-
-        Uni<Void> result = apiKeyService.deleteUsagePlan(usagePlanId);
-
-        result.subscribe().with(
-                item -> {
-                    verify(apiGatewayClient).updateUsagePlan(any(UpdateUsagePlanRequest.class));
-                    verify(apiGatewayClient).deleteUsagePlan(any(DeleteUsagePlanRequest.class));
-                    verify(log).info(contains("Usage plan:"));
-                },
-                throwable -> {
-                    fail("Expected no exception, but got: " + throwable);
-                }
-        );
-    }
-
-    @Test
-    void testDeleteUsagePlanFailure() {
-        String usagePlanId = "plan123";
-
-        when(apiGatewayClient.updateUsagePlan(any(UpdateUsagePlanRequest.class)))
-                .thenThrow(new RuntimeException("Update failed"));
-
-        Uni<Void> result = apiKeyService.deleteUsagePlan(usagePlanId);
-
-        result.subscribe().with(
-                item -> fail("Expected exception but got success"),
-                throwable -> {
-                    verify(log).error(contains("Failed to delete usage plan with id:"));
-                }
-        );
-    }
-
-    @Test
     void testBuildPatchOperationWithAllValidFields() {
         UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
         updateDTO.setQuotaLimit(100);
@@ -405,5 +363,88 @@ class ApiKeyServiceImplTest {
 
         assertEquals("Non è possibile specificare solo uno tra quota limit e quota period", exception.getMessage());
     }
+
+    @Test
+    void testCreateUsagePlanWithFailureOnKeyCreation() {
+        String apiKeyId = "apiKey123";
+        BankInsertionDTO bankInsertionDTO = new BankInsertionDTO();
+        bankInsertionDTO.setDenomination("Test Bank");
+        bankInsertionDTO.setLimit(1000);
+        bankInsertionDTO.setPeriod(QuotaPeriodType.MONTH);
+        bankInsertionDTO.setBurstLimit(200);
+        bankInsertionDTO.setRateLimit(10.5);
+
+        String usagePlanId = "plan123";
+
+        CreateUsagePlanResponse usagePlanResponse = CreateUsagePlanResponse.builder()
+                .id(usagePlanId)
+                .build();
+
+        UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
+        usagePlanDTO.setId(usagePlanId);
+        usagePlanDTO.setName("Test Bank-plan");
+        usagePlanDTO.setLimit(1000);
+        usagePlanDTO.setPeriod(QuotaPeriodType.MONTH);
+        usagePlanDTO.setBurstLimit(200);
+        usagePlanDTO.setRateLimit(10.5);
+
+        when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
+        when(apiGatewayClient.createUsagePlan(any(CreateUsagePlanRequest.class))).thenReturn(usagePlanResponse);
+        when(apiGatewayClient.createUsagePlanKey(any(CreateUsagePlanKeyRequest.class))).thenThrow(new RuntimeException("Simulated exception"));
+        when(mapper.usagePlanCreateToDto(any(CreateUsagePlanResponse.class))).thenReturn(usagePlanDTO);
+
+        Uni<UsagePlanDTO> usagePlanDTOSubscription = apiKeyService.createUsagePlan(bankInsertionDTO, apiKeyId);
+
+        usagePlanDTOSubscription.subscribe().with(
+                dto -> fail("Expected an exception, but got: " + dto),
+                throwable -> {
+                    assertInstanceOf(AtmLayerException.class, throwable);
+                    assertEquals("La richiesta di CreateUsagePlanKey su AWS non è andata a buon fine", throwable.getMessage());
+                    verify(apiGatewayClient).updateUsagePlan(any(UpdateUsagePlanRequest.class));
+                    verify(apiGatewayClient).deleteUsagePlan(any(DeleteUsagePlanRequest.class));
+                }
+        );
+    }
+
+    @Test
+    void testDeleteUsagePlanSuccess() {
+        String usagePlanId = "plan123";
+
+        when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
+
+        Uni<Void> result = apiKeyService.deleteUsagePlan(usagePlanId);
+
+        assertDoesNotThrow(() -> result.await().indefinitely());
+
+        ArgumentCaptor<DeleteUsagePlanRequest> deleteCaptor = ArgumentCaptor.forClass(DeleteUsagePlanRequest.class);
+        verify(apiGatewayClient).deleteUsagePlan(deleteCaptor.capture());
+
+        DeleteUsagePlanRequest capturedRequest = deleteCaptor.getValue();
+        assertEquals(usagePlanId, capturedRequest.usagePlanId());
+
+        verify(apiGatewayClient).updateUsagePlan(any(UpdateUsagePlanRequest.class));
+    }
+
+    @Test
+    void testDeleteUsagePlanFailure() {
+        String usagePlanId = "plan123";
+
+        when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
+
+        doThrow(new RuntimeException("Simulated delete failure")).when(apiGatewayClient).deleteUsagePlan(any(DeleteUsagePlanRequest.class));
+
+        Uni<Void> result = apiKeyService.deleteUsagePlan(usagePlanId);
+
+        result.subscribe().with(
+                item -> fail("Expected an exception, but the operation succeeded"),
+                throwable -> {
+                    assertInstanceOf(RuntimeException.class, throwable);
+                    assertEquals("Simulated delete failure", throwable.getMessage());
+                }
+        );
+
+    }
+
+
 
 }

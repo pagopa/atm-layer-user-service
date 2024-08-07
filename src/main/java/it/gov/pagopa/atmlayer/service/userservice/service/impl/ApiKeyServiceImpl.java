@@ -120,9 +120,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                         .usagePlanId(usagePlan.getId())
                         .build();
 
-                DeleteUsagePlanResponse deleteUsagePlanResponse = apiGatewayClientConf.getApiGatewayClient().deleteUsagePlan(deleteUsagePlanRequest);
+                apiGatewayClientConf.getApiGatewayClient().deleteUsagePlan(deleteUsagePlanRequest);
 
-                log.info("Usage plan deleted: {}", deleteUsagePlanResponse);
                 throw new AtmLayerException("La richiesta di CreateUsagePlanKey su AWS non è andata a buon fine", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
             log.info("Usage plan: {}", usagePlan);
@@ -192,9 +191,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     .usagePlanId(usagePlanId)
                     .build();
 
-            DeleteUsagePlanResponse usagePlanResponse = apiGatewayClientConf.getApiGatewayClient().deleteUsagePlan(usagePlanRequest);
+            apiGatewayClientConf.getApiGatewayClient().deleteUsagePlan(usagePlanRequest);
 
-            log.info("Usage plan: {}", usagePlanResponse);
             return null;
         }).onFailure().invoke(th -> log.error("Failed to delete usage plan with id: {}", usagePlanId, th)).replaceWithVoid();
     }
