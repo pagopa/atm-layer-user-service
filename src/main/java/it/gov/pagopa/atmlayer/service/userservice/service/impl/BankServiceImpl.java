@@ -96,7 +96,7 @@ public class BankServiceImpl implements BankService {
                                                                         .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR))));
 
                                                     })
-                                                    .onFailure().recoverWithUni(throwable -> rollbackApiKeyCreation(createdClient)
+                                                    .onFailure().recoverWithUni(throwable -> rollbackApiKeyCreation(apikeyCreated)
                                                             .onItem().transformToUni(v -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR))));
                                         })
                                         .onFailure().recoverWithUni(throwable -> rollbackAppClientCreation(createdClient)
@@ -114,8 +114,8 @@ public class BankServiceImpl implements BankService {
     }
 
     @WithTransaction
-    public Uni<Void> rollbackApiKeyCreation(ClientCredentialsDTO clientCredentials) {
-        return apiKeyService.deleteApiKey(clientCredentials.getClientId())
+    public Uni<Void> rollbackApiKeyCreation(ApiKeyDTO apiKeyDTO) {
+        return apiKeyService.deleteApiKey(apiKeyDTO.getId())
                 .onItem().invoke(() -> log.info("Rollback: API Key deleted."))
                 .replaceWith(Uni.createFrom().voidItem());
     }
