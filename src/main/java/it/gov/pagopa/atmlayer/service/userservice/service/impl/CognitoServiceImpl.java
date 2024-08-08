@@ -40,17 +40,16 @@ public class CognitoServiceImpl implements CognitoService {
                 log.info("Client value: {}", client);
             } catch (Exception e) {
                 log.error("ERROR with getClientCredentials: {}", e.getMessage());
+                throw new AtmLayerException(("La richiesta di GetClientCredentials su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
-            try {
-                ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
-                clientCredentialsDTO.setClientId(client != null ? client.clientId() : "");
-                clientCredentialsDTO.setClientSecret(client != null ? client.clientSecret() : "");
-                clientCredentialsDTO.setClientName(client != null ? client.clientName() : "");
-                return clientCredentialsDTO;
-            } catch (Exception e) {
-                log.error("mapping exception");
-                throw new RuntimeException(e);
+            if (client == null || client.sdkFields().isEmpty()){
+                throw new AtmLayerException("Errore nella richiesta di DescribeUserPoolClient: risposta nulla o con campi vuoti", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
+            ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
+            clientCredentialsDTO.setClientId(client.clientId());
+            clientCredentialsDTO.setClientSecret(client.clientSecret());
+            clientCredentialsDTO.setClientName(client.clientName());
+            return clientCredentialsDTO;
         });
     }
 
@@ -75,16 +74,14 @@ public class CognitoServiceImpl implements CognitoService {
                 log.error("La richiesta di CreateUserPoolClient su AWS non è andata a buon fine: {}", e.getMessage());
                 throw new AtmLayerException(("La richiesta di CreateUserPoolClient su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
-            try {
-                ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
-                clientCredentialsDTO.setClientId(client != null ? client.clientId() : "");
-                clientCredentialsDTO.setClientSecret(client != null ? client.clientSecret() : "");
-                clientCredentialsDTO.setClientName(client != null ? client.clientName() : "");
-                return clientCredentialsDTO;
-            } catch (Exception e) {
-                log.error("mapping exception");
-                throw new RuntimeException(e);
+            if (client == null || client.sdkFields().isEmpty()){
+                throw new AtmLayerException("Errore nella richiesta di CreateUserPoolClient: risposta nulla o con campi vuoti", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
             }
+            ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
+            clientCredentialsDTO.setClientId(client.clientId());
+            clientCredentialsDTO.setClientSecret(client.clientSecret());
+            clientCredentialsDTO.setClientName(client.clientName());
+            return clientCredentialsDTO;
         });
     }
 
@@ -104,13 +101,13 @@ public class CognitoServiceImpl implements CognitoService {
             log.error("La richiesta di UpdateUserPoolClient su AWS non è andata a buon fine: {}", e.getMessage());
             throw new AtmLayerException(("La richiesta di UpdateUserPoolClient su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
         }
-        if (client.sdkFields().isEmpty()){
-            throw new AtmLayerException("Errore nella richiesta di UpdateUserPoolClient: campi vuoti", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
+        if (client == null || client.sdkFields().isEmpty()){
+            throw new AtmLayerException("Errore nella richiesta di UpdateUserPoolClient: risposta nulla o con campi vuoti", Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
         }
         ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
-        clientCredentialsDTO.setClientId(client != null ? client.clientId() : "");
-        clientCredentialsDTO.setClientSecret(client != null ? client.clientSecret() : "");
-        clientCredentialsDTO.setClientName(client != null ? client.clientName() : "");
+        clientCredentialsDTO.setClientId(client.clientId());
+        clientCredentialsDTO.setClientSecret(client.clientSecret());
+        clientCredentialsDTO.setClientName(client.clientName());
         return Uni.createFrom().item(clientCredentialsDTO);
     }
 

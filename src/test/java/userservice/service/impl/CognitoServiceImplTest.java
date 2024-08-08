@@ -2,6 +2,7 @@ package userservice.service.impl;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.gov.pagopa.atmlayer.service.userservice.configuration.CognitoClientConf;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.model.ClientCredentialsDTO;
@@ -62,6 +63,39 @@ class CognitoServiceImplTest {
         assertEquals(clientName, result.getClientName());
     }
 
+//    @Test
+//    void testUpdateClientName_failure() {
+//        String clientId = "test-client-id";
+//        String clientName = "updated-client-name";
+//
+//        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
+//
+//        when(cognitoClient.updateUserPoolClient(any(UpdateUserPoolClientRequest.class)))
+//                .thenThrow(new RuntimeException("something went wrong"));
+//
+//        cognitoService.updateClientName(clientId, clientName)
+//                .subscribe().withSubscriber(UniAssertSubscriber.create())
+//                .assertFailedWith(AtmLayerException.class, "La richiesta di UpdateUserPoolClient su AWS non è andata a buon fine");
+//    }
+//
+//    @Test
+//    void testUpdateClientName_empty_fields() {
+//        String clientId = "test-client-id";
+//        String clientName = "updated-client-name";
+//
+//        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
+//
+//        UpdateUserPoolClientResponse updateResponse = UpdateUserPoolClientResponse.builder()
+//                .build();
+//
+//        when(cognitoClient.updateUserPoolClient(any(UpdateUserPoolClientRequest.class)))
+//                .thenReturn(updateResponse);
+//
+//        cognitoService.updateClientName(clientId, clientName)
+//                .subscribe().withSubscriber(UniAssertSubscriber.create())
+//                .assertFailedWith(AtmLayerException.class, "Errore nella richiesta di UpdateUserPoolClient: risposta nulla o con campi vuoti");
+//    }
+
     @Test
     void testGenerateClientSuccess() {
         String clientName = "test-client";
@@ -87,6 +121,23 @@ class CognitoServiceImplTest {
         assertEquals("test-client-id", result.getClientId());
         assertEquals("test-client-secret", result.getClientSecret());
         assertEquals(clientName, result.getClientName());
+    }
+
+    @Test
+    void testGenerateClient_empty_fields() {
+        String clientName = "test-client";
+
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
+
+        CreateUserPoolClientResponse createResponse = CreateUserPoolClientResponse.builder()
+                .build();
+
+        when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
+                .thenReturn(createResponse);
+
+        cognitoService.generateClient(clientName)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(AtmLayerException.class, "Errore nella richiesta di CreateUserPoolClient: risposta nulla o con campi vuoti");
     }
 
     @Test
@@ -130,6 +181,35 @@ class CognitoServiceImplTest {
         assertEquals(clientId, result.getClientId());
         assertEquals(clientSecret, result.getClientSecret());
         assertEquals(clientName, result.getClientName());
+    }
+
+    @Test
+    void testGetClientCredentials_empty_fields() {
+        String clientId = "test-client-id";
+
+        DescribeUserPoolClientResponse response = DescribeUserPoolClientResponse.builder()
+                .build();
+
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
+        when(cognitoClient.describeUserPoolClient(any(DescribeUserPoolClientRequest.class)))
+                .thenReturn(response);
+
+        cognitoService.getClientCredentials(clientId)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(AtmLayerException.class, "Errore nella richiesta di DescribeUserPoolClient: risposta nulla o con campi vuoti");
+    }
+
+    @Test
+    void testGetClientCredentials_fail() {
+        String clientId = "test-client-id";
+
+        when(cognitoClientConf.getCognitoClient()).thenReturn(cognitoClient);
+        when(cognitoClient.describeUserPoolClient(any(DescribeUserPoolClientRequest.class)))
+                .thenThrow(new RuntimeException("something went wrong"));
+
+        cognitoService.getClientCredentials(clientId)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(AtmLayerException.class, "La richiesta di GetClientCredentials su AWS non è andata a buon fine");
     }
 
     @Test
