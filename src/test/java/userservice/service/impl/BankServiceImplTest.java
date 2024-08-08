@@ -590,4 +590,58 @@ class BankServiceImplTest {
                 .assertItem(bankEntitiesList);
     }
 
+    @Test
+    void testUpdateBank_UsagePlanUpdateSuccess() {
+        BankUpdateDTO input = new BankUpdateDTO();
+        input.setAcquirerId("test-acquirer-id");
+        input.setDenomination("Denomination");
+        input.setRateLimit(100.0);
+        input.setBurstLimit(50);
+        input.setLimit(1000);
+        input.setPeriod(QuotaPeriodType.MONTH);
+
+        BankEntity bankEntity = new BankEntity();
+        bankEntity.setDenomination("Denomination");
+        bankEntity.setClientId("client-id");
+        bankEntity.setApiKeyId("api-key-id");
+        bankEntity.setUsagePlanId("usage-plan-id");
+
+        UsagePlanDTO updatedUsagePlan = new UsagePlanDTO();
+        ClientCredentialsDTO clientCredentialsDTO = new ClientCredentialsDTO();
+        BankPresentationDTO bankPresentationDTO = new BankPresentationDTO();
+
+        when(bankRepository.findById(input.getAcquirerId())).thenReturn(Uni.createFrom().item(bankEntity));
+        when(apiKeyService.updateUsagePlan(anyString(), any())).thenReturn(Uni.createFrom().item(updatedUsagePlan));
+        when(apiKeyService.getApiKey(anyString())).thenReturn(Uni.createFrom().item(new ApiKeyDTO()));
+        when(cognitoService.getClientCredentials(anyString())).thenReturn(Uni.createFrom().item(clientCredentialsDTO));
+        when(bankMapper.toPresentationDTO(any(), any(), any(), any())).thenReturn(bankPresentationDTO);
+
+        Uni<BankPresentationDTO> resultUni = bankService.updateBank(input);
+        BankPresentationDTO result = resultUni.await().indefinitely();
+
+        assertNotNull(result, "The result should not be null");
+        assertEquals(bankPresentationDTO, result, "The result should match the expected BankPresentationDTO");
+
+        verify(bankRepository).findById(input.getAcquirerId());
+        verify(apiKeyService).updateUsagePlan(anyString(), any());
+        verify(apiKeyService).getApiKey(anyString());
+        verify(cognitoService).getClientCredentials(anyString());
+        verify(bankMapper).toPresentationDTO(any(), any(), any(), any());
+    }
+
+    @Test
+    void testRollbackUsagePlanCreation() {
+        ApiKeyDTO apiKey = new ApiKeyDTO("usage-plan-id", "api-key-value", "Test API Key");
+
+        when(apiKeyService.deleteUsagePlan(apiKey.getId()))
+                .thenReturn(Uni.createFrom().voidItem());
+
+        Uni<Void> result = bankService.rollbackUsagePlanCreation(apiKey);
+
+        result.subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted();
+
+        verify(apiKeyService).deleteUsagePlan(apiKey.getId());
+        verifyNoMoreInteractions(apiKeyService);
+    }
 }
