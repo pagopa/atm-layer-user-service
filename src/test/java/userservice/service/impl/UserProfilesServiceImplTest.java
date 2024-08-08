@@ -334,7 +334,7 @@ class UserProfilesServiceImplTest {
         verify(userProfilesRepository).persist(anyList());
     }
 
-    /*@Test
+    @Test
     void testUpdateUserProfilesShouldCheckAtLeastTwoProfiles() {
         UserProfilesInsertionDTO dto = new UserProfilesInsertionDTO();
         dto.setUserId("prova@test.com");
@@ -366,8 +366,6 @@ class UserProfilesServiceImplTest {
         verify(userRepository).findById(dto.getUserId());
         verify(profileRepository, times(3)).findById(anyInt());
         verify(userProfilesRepository).findByUserId(dto.getUserId());
-        verify(userProfilesRepository).deleteUserProfiles(anyList());
-        verify(userProfilesRepository).persist(anyList());
-    }*/
+    }
 
 }

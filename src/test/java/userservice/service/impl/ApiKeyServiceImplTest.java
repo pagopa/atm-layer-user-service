@@ -4,12 +4,14 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.configuration.ApiGatewayClientConf;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
+import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.ApiKeyMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.service.impl.ApiKeyServiceImpl;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -18,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.apigateway.ApiGatewayClient;
 import software.amazon.awssdk.services.apigateway.model.*;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -445,6 +448,111 @@ class ApiKeyServiceImplTest {
 
     }
 
+    @Test
+    void testCreateApiKeyWithException() {
+        // Arrange
+        CreateApiKeyRequest mockRequest = mock(CreateApiKeyRequest.class);
+        CreateApiKeyResponse mockResponse = mock(CreateApiKeyResponse.class);
 
+        when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
+        when(apiGatewayClient.createApiKey(any(CreateApiKeyRequest.class))).thenReturn(mockResponse);
+        when(mockResponse.sdkFields()).thenReturn(Collections.emptyList());
+
+        // Act & Assert
+        AtmLayerException exception = assertThrows(AtmLayerException.class, () -> {
+            apiKeyService.createApiKey("test-client").await().indefinitely();
+        });
+
+        assertEquals("La richiesta di CreateApiKey su AWS non è andata a buon fine", exception.getMessage());
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), exception.getStatusCode());
+        assertEquals(AppErrorCodeEnum.AWS_OPERATION_ERROR.getErrorCode(), exception.getErrorCode());
+    }
+
+    @Test
+    void testGetApiKeyWithException() {
+        // Arrange
+        GetApiKeyRequest mockRequest = mock(GetApiKeyRequest.class);
+        GetApiKeyResponse mockResponse = mock(GetApiKeyResponse.class);
+
+        when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
+        when(apiGatewayClient.getApiKey(any(GetApiKeyRequest.class))).thenReturn(mockResponse);
+        when(mockResponse.sdkFields()).thenReturn(Collections.emptyList());
+
+        // Act & Assert
+        AtmLayerException exception = assertThrows(AtmLayerException.class, () -> {
+            apiKeyService.getApiKey("test-api-key-id").await().indefinitely();
+        });
+
+        assertEquals("ApiKey non trovata", exception.getMessage());
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), exception.getStatusCode());
+        assertEquals(AppErrorCodeEnum.AWS_OPERATION_ERROR.getErrorCode(), exception.getErrorCode());
+    }
+
+    @Test
+    void testBuildPatchOperation_withRateLimitAndBurstLimit() {
+        // Arrange
+        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
+        updateDTO.setRateLimit(100.0);
+        updateDTO.setBurstLimit(200);
+
+        // Act
+        List<PatchOperation> patchOperations = apiKeyService.buildPatchOperation(updateDTO);
+
+        // Assert
+        assertEquals(3, patchOperations.size());
+        assertTrue(patchOperations.stream().anyMatch(po -> po.path().equals("/throttle/rateLimit") && po.value().equals("100.0")));
+        assertTrue(patchOperations.stream().anyMatch(po -> po.path().equals("/throttle/burstLimit") && po.value().equals("200")));
+    }
+
+    @Test
+    void testBuildPatchOperation_withoutRateLimit() {
+        // Arrange
+        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
+        updateDTO.setRateLimit(null);
+        updateDTO.setBurstLimit(null);
+
+        // Act
+        List<PatchOperation> patchOperations = apiKeyService.buildPatchOperation(updateDTO);
+
+        // Assert
+        assertEquals(2, patchOperations.size());
+        assertFalse(patchOperations.stream().anyMatch(po -> po.op().equals("REMOVE") && po.path().equals("/throttle")));
+    }
+
+    @Test
+    void testBuildPatchOperation_withRateLimitOnly() {
+        // Arrange
+        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
+        updateDTO.setRateLimit(100.0);
+        updateDTO.setBurstLimit(null);
+
+        // Act & Assert
+        AtmLayerException thrown = assertThrows(
+                AtmLayerException.class,
+                () -> apiKeyService.buildPatchOperation(updateDTO),
+                "Expected buildPatchOperation() to throw, but it didn't"
+        );
+
+        assertTrue(thrown.getMessage().contains("Non è possibile specificare solo uno tra rate limit e burst limit"));
+        assertEquals(AppErrorCodeEnum.INVALID_PAYLOAD.getErrorCode(), thrown.getErrorCode());
+    }
+
+    @Test
+    void testBuildPatchOperation_withBurstLimitOnly() {
+        // Arrange
+        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
+        updateDTO.setRateLimit(null);
+        updateDTO.setBurstLimit(200);
+
+        // Act & Assert
+        AtmLayerException thrown = assertThrows(
+                AtmLayerException.class,
+                () -> apiKeyService.buildPatchOperation(updateDTO),
+                "Expected buildPatchOperation() to throw, but it didn't"
+        );
+
+        assertTrue(thrown.getMessage().contains("Non è possibile specificare solo uno tra rate limit e burst limit"));
+        assertEquals(AppErrorCodeEnum.INVALID_PAYLOAD.getErrorCode(), thrown.getErrorCode());
+    }
 
 }
