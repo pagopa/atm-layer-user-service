@@ -410,6 +410,44 @@ class ApiKeyServiceImplTest {
     }
 
     @Test
+    void testCreateUsagePlanWithFailure_no_limits_in_input() {
+        String apiKeyId = "apiKey123";
+        BankInsertionDTO bankInsertionDTO = new BankInsertionDTO();
+        bankInsertionDTO.setDenomination("Test Bank");
+
+        String usagePlanId = "plan123";
+
+        CreateUsagePlanResponse usagePlanResponse = CreateUsagePlanResponse.builder()
+                .id(usagePlanId)
+                .build();
+
+        UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
+        usagePlanDTO.setId(usagePlanId);
+        usagePlanDTO.setName("Test Bank-plan");
+        usagePlanDTO.setLimit(1000);
+        usagePlanDTO.setPeriod(QuotaPeriodType.MONTH);
+        usagePlanDTO.setBurstLimit(200);
+        usagePlanDTO.setRateLimit(10.5);
+
+        when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
+        when(apiGatewayClient.createUsagePlan(any(CreateUsagePlanRequest.class))).thenReturn(usagePlanResponse);
+        when(apiGatewayClient.createUsagePlanKey(any(CreateUsagePlanKeyRequest.class))).thenThrow(new RuntimeException("Simulated exception"));
+        when(mapper.usagePlanCreateToDto(any(CreateUsagePlanResponse.class))).thenReturn(usagePlanDTO);
+
+        Uni<UsagePlanDTO> usagePlanDTOSubscription = apiKeyService.createUsagePlan(bankInsertionDTO, apiKeyId);
+
+        usagePlanDTOSubscription.subscribe().with(
+                dto -> fail("Expected an exception, but got: " + dto),
+                throwable -> {
+                    assertInstanceOf(AtmLayerException.class, throwable);
+                    assertEquals("La richiesta di CreateUsagePlanKey su AWS non è andata a buon fine", throwable.getMessage());
+                    verify(apiGatewayClient).updateUsagePlan(any(UpdateUsagePlanRequest.class));
+                    verify(apiGatewayClient).deleteUsagePlan(any(DeleteUsagePlanRequest.class));
+                }
+        );
+    }
+
+    @Test
     void testDeleteUsagePlanSuccess() {
         String usagePlanId = "plan123";
 
@@ -553,6 +591,28 @@ class ApiKeyServiceImplTest {
 
         assertTrue(thrown.getMessage().contains("Non è possibile specificare solo uno tra rate limit e burst limit"));
         assertEquals(AppErrorCodeEnum.INVALID_PAYLOAD.getErrorCode(), thrown.getErrorCode());
+    }
+
+    @Test
+    void testBuildPatchOperation_withQuotaLimitOnly() {
+        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
+        updateDTO.setQuotaLimit(100);
+
+        assertThrows(AtmLayerException.class,
+                () -> apiKeyService.buildPatchOperation(updateDTO),
+                "Non è possibile specificare solo uno tra quota limit e quota period"
+        );
+    }
+
+    @Test
+    void testBuildPatchOperation_withPeriodOnly() {
+        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
+        updateDTO.setQuotaPeriod(MONTH);
+
+        assertThrows(AtmLayerException.class,
+                () -> apiKeyService.buildPatchOperation(updateDTO),
+                "Non è possibile specificare solo uno tra quota limit e quota period"
+        );
     }
 
 }
