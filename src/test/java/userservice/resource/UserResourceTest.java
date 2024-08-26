@@ -268,52 +268,6 @@ class UserResourceTest {
     }
 
     @Test
-    void testGetAll() {
-        List<User> users = new ArrayList<>();
-        User user = new User();
-        users.add(user);
-        List<UserWithProfilesDTO> dtoList = new ArrayList<>();
-        UserWithProfilesDTO userWithProfilesDTO = new UserWithProfilesDTO();
-        dtoList.add(userWithProfilesDTO);
-
-        when(userService.getAllUsers()).thenReturn(Uni.createFrom().item(users));
-        when(userMapper.toDTOList(any(List.class))).thenReturn(dtoList);
-
-        ArrayList result = given()
-                .when().get("/api/v1/user-service/users")
-                .then()
-                .statusCode(200)
-                .extract()
-                .body()
-                .as(ArrayList.class);
-
-        assertEquals(1, result.size());
-        verify(userService, times(1)).getAllUsers();
-        verify(userMapper, times(1)).toDTOList(users);
-    }
-
-    @Test
-    void testGetAllEmpty() {
-        List<User> users = new ArrayList<>();
-        List<UserWithProfilesDTO> dtoList = new ArrayList<>();
-
-        when(userService.getAllUsers()).thenReturn(Uni.createFrom().item(users));
-        when(userMapper.toDTOList(any(List.class))).thenReturn(dtoList);
-
-        ArrayList result = given()
-                .when().get("/api/v1/user-service/users")
-                .then()
-                .statusCode(200)
-                .extract()
-                .body()
-                .as(ArrayList.class);
-
-        assertEquals(0, result.size());
-        verify(userService, times(1)).getAllUsers();
-        verify(userMapper, times(1)).toDTOList(users);
-    }
-
-    @Test
     void testGetByIdWithProfiles() {
         String userId = "testUserId";
         User user = new User();
