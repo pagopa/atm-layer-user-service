@@ -59,12 +59,6 @@ apiGatewayId: 8o3pf45im8
 cognitoUserPoolId: eu-south-1_sEZF9PqAf
 cognitoScopes: dev/tasks
 
-redis:
-  credentialsSecretEnabled: true
-  credentialsSecretName: pagopa-dev-atm-layer-user-service-redis
-  credentialsSecretKeys:
-    host: host
-    port: port
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -93,7 +87,7 @@ deployment:
   name: pagopa-dev-atm-layer-user-service
   annotations:
     reloader.stakater.com/auto: "true"
-    secret.reloader.stakater.com/reload: pagopa-dev-atm-layer-user-service-redis, pagopa-dev-atm-layer-user-service-mil-auth
+    secret.reloader.stakater.com/reload: pagopa-dev-atm-layer-user-service-mil-auth
 
 service:
   name: pagopa-dev-atm-layer-user-service

@@ -68,18 +68,6 @@ spec:
               value: "{{ .Values.apiGatewayId }}"
             - name: USER_POOL_ID
               value: "{{ .Values.cognitoUserPoolId }}"
-            {{- if .Values.redis.credentialsSecretEnabled }}
-            - name: REDIS_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.redis.credentialsSecretName }}
-                  key: {{ .Values.redis.credentialsSecretKeys.host }}
-            - name: REDIS_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.redis.credentialsSecretName }}
-                  key: {{ .Values.redis.credentialsSecretKeys.port }}
-            {{- end }}
             {{- if .Values.milAuth.credentialsSecretEnabled }}
             - name: MIL_AUTHENTICATOR_MIL_AUTH_CLIENT_ID
               valueFrom:
