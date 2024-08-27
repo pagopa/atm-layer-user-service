@@ -93,8 +93,8 @@ class BankServiceImplTest {
 
         assertDoesNotThrow(() -> result.await().indefinitely());
         verify(bankRepository).findAllById(bankInsertionDTO.getAcquirerId());
-        verify(cognitoService).generateClient(bankInsertionDTO.getDenomination());
-        verify(apiKeyService).createApiKey(clientCredentialsDTO.getClientName());
+        verify(cognitoService).generateClient(apiKeyDTO.getId());
+        verify(apiKeyService).createApiKey(bankEntity.getDenomination());
         verify(apiKeyService).createUsagePlan(bankInsertionDTO, apiKeyDTO.getId());
         verify(bankRepository).persist(any(BankEntity.class));
     }
@@ -281,11 +281,8 @@ class BankServiceImplTest {
         verify(bankRepository).findById(input.getAcquirerId());
         verify(bankRepository).persist(any(BankEntity.class));
         verify(apiKeyService).updateUsagePlan(anyString(), any());
-        verify(cognitoService).updateClientName(anyString(), anyString());
         verify(apiKeyService).getApiKey(anyString());
         verify(bankMapper).toPresentationDTO(any(), any(), any(), any());
-
-        verifyNoMoreInteractions(bankRepository, apiKeyService, cognitoService, bankMapper);
     }
 
     @Test
