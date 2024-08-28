@@ -19,7 +19,5 @@ public class BankUpdateDTO {
 
     private QuotaPeriodType period;
     @Schema(minimum = "1", maximum = "100000000")
-    private Integer burstLimit;
-    @Schema(minimum = "1", maximum = "100000000")
     private Double rateLimit;
 }

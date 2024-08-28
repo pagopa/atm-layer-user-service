@@ -189,7 +189,6 @@ class ApiKeyServiceImplTest {
                 .build();
 
         ThrottleSettings throttleSettings = ThrottleSettings.builder()
-                .burstLimit(200)
                 .rateLimit(10.5)
                 .build();
 
@@ -211,7 +210,6 @@ class ApiKeyServiceImplTest {
         usagePlanDTO.setName("Test Usage Plan");
         usagePlanDTO.setLimit(1000);
         usagePlanDTO.setPeriod(MONTH);
-        usagePlanDTO.setBurstLimit(200);
         usagePlanDTO.setRateLimit(10.5);
 
         when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
@@ -225,7 +223,7 @@ class ApiKeyServiceImplTest {
             assertEquals("Test Usage Plan", dto.getName());
             assertEquals(1000, dto.getLimit());
             assertEquals(MONTH, dto.getPeriod());
-            assertEquals(200, dto.getBurstLimit());
+            assertEquals(0, dto.getBurstLimit());
             assertEquals(10.5, dto.getRateLimit());
         }, throwable -> fail("Expected no exception, but got: " + throwable));
 
@@ -264,7 +262,6 @@ class ApiKeyServiceImplTest {
         bankInsertionDTO.setDenomination("Test Bank");
         bankInsertionDTO.setLimit(1000);
         bankInsertionDTO.setPeriod(QuotaPeriodType.MONTH);
-        bankInsertionDTO.setBurstLimit(200);
         bankInsertionDTO.setRateLimit(10.5);
 
         String usagePlanId = "plan123";
@@ -278,7 +275,7 @@ class ApiKeyServiceImplTest {
         usagePlanDTO.setName("Test Bank-plan");
         usagePlanDTO.setLimit(1000);
         usagePlanDTO.setPeriod(QuotaPeriodType.MONTH);
-        usagePlanDTO.setBurstLimit(200);
+        usagePlanDTO.setBurstLimit(0);
         usagePlanDTO.setRateLimit(10.5);
 
         when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
@@ -293,7 +290,7 @@ class ApiKeyServiceImplTest {
             assertEquals("Test Bank-plan", dto.getName());
             assertEquals(1000, dto.getLimit());
             assertEquals(QuotaPeriodType.MONTH, dto.getPeriod());
-            assertEquals(200, dto.getBurstLimit());
+            assertEquals(0, dto.getBurstLimit());
             assertEquals(10.5, dto.getRateLimit());
         }, throwable -> fail("Expected no exception, but got: " + throwable));
 
@@ -307,7 +304,6 @@ class ApiKeyServiceImplTest {
         String usagePlanId = "plan123";
         UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
         updateDTO.setRateLimit(15.0);
-        updateDTO.setBurstLimit(300);
 
         UpdateUsagePlanResponse updateUsagePlanResponse = UpdateUsagePlanResponse.builder()
                 .build();
@@ -315,7 +311,7 @@ class ApiKeyServiceImplTest {
         UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
         usagePlanDTO.setId(usagePlanId);
         usagePlanDTO.setRateLimit(15.0);
-        usagePlanDTO.setBurstLimit(300);
+        usagePlanDTO.setBurstLimit(0);
 
         when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
         when(apiGatewayClient.updateUsagePlan(any(UpdateUsagePlanRequest.class))).thenReturn(updateUsagePlanResponse);
@@ -327,7 +323,7 @@ class ApiKeyServiceImplTest {
             assertNotNull(result);
             assertEquals(usagePlanId, result.getId());
             assertEquals(15.0, result.getRateLimit());
-            assertEquals(300, result.getBurstLimit());
+            assertEquals(0, result.getBurstLimit());
         }, throwable -> fail("Expected no exception, but got: " + throwable));
 
         verify(apiGatewayClient).updateUsagePlan(any(UpdateUsagePlanRequest.class));
@@ -340,25 +336,13 @@ class ApiKeyServiceImplTest {
         updateDTO.setQuotaLimit(100);
         updateDTO.setQuotaPeriod(MONTH);
         updateDTO.setRateLimit(5.0);
-        updateDTO.setBurstLimit(10);
 
         List<PatchOperation> patchOperations = apiKeyService.buildPatchOperation(updateDTO);
 
-        assertEquals(4, patchOperations.size());
+        assertEquals(3, patchOperations.size());
         assertTrue(patchOperations.contains(PatchOperation.builder().op(Op.REPLACE).path("/quota/limit").value("100").build()));
         assertTrue(patchOperations.contains(PatchOperation.builder().op(Op.REPLACE).path("/quota/period").value("MONTH").build()));
         assertTrue(patchOperations.contains(PatchOperation.builder().op(Op.REPLACE).path("/throttle/rateLimit").value("5.0").build()));
-        assertTrue(patchOperations.contains(PatchOperation.builder().op(Op.REPLACE).path("/throttle/burstLimit").value("10").build()));
-    }
-
-    @Test
-    void testBuildPatchOperationWithInvalidRateLimitAndBurstLimit() {
-        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
-        updateDTO.setRateLimit(5.0);
-
-        Exception exception = assertThrows(AtmLayerException.class, () -> apiKeyService.buildPatchOperation(updateDTO));
-
-        assertEquals("Non è possibile specificare solo uno tra rate limit e burst limit", exception.getMessage());
     }
 
     @Test
@@ -378,7 +362,6 @@ class ApiKeyServiceImplTest {
         bankInsertionDTO.setDenomination("Test Bank");
         bankInsertionDTO.setLimit(1000);
         bankInsertionDTO.setPeriod(QuotaPeriodType.MONTH);
-        bankInsertionDTO.setBurstLimit(200);
         bankInsertionDTO.setRateLimit(10.5);
 
         String usagePlanId = "plan123";
@@ -392,7 +375,7 @@ class ApiKeyServiceImplTest {
         usagePlanDTO.setName("Test Bank-plan");
         usagePlanDTO.setLimit(1000);
         usagePlanDTO.setPeriod(QuotaPeriodType.MONTH);
-        usagePlanDTO.setBurstLimit(200);
+        usagePlanDTO.setBurstLimit(0);
         usagePlanDTO.setRateLimit(10.5);
 
         when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
@@ -430,7 +413,7 @@ class ApiKeyServiceImplTest {
         usagePlanDTO.setName("Test Bank-plan");
         usagePlanDTO.setLimit(1000);
         usagePlanDTO.setPeriod(QuotaPeriodType.MONTH);
-        usagePlanDTO.setBurstLimit(200);
+        usagePlanDTO.setBurstLimit(0);
         usagePlanDTO.setRateLimit(10.5);
 
         when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
@@ -535,15 +518,13 @@ class ApiKeyServiceImplTest {
         // Arrange
         UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
         updateDTO.setRateLimit(100.0);
-        updateDTO.setBurstLimit(200);
 
         // Act
         List<PatchOperation> patchOperations = apiKeyService.buildPatchOperation(updateDTO);
 
         // Assert
-        assertEquals(3, patchOperations.size());
+        assertEquals(2, patchOperations.size());
         assertTrue(patchOperations.stream().anyMatch(po -> po.path().equals("/throttle/rateLimit") && po.value().equals("100.0")));
-        assertTrue(patchOperations.stream().anyMatch(po -> po.path().equals("/throttle/burstLimit") && po.value().equals("200")));
     }
 
     @Test
@@ -551,7 +532,6 @@ class ApiKeyServiceImplTest {
         // Arrange
         UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
         updateDTO.setRateLimit(null);
-        updateDTO.setBurstLimit(null);
 
         // Act
         List<PatchOperation> patchOperations = apiKeyService.buildPatchOperation(updateDTO);
@@ -561,41 +541,6 @@ class ApiKeyServiceImplTest {
         assertFalse(patchOperations.stream().anyMatch(po -> po.op().equals("REMOVE") && po.path().equals("/throttle")));
     }
 
-    @Test
-    void testBuildPatchOperation_withRateLimitOnly() {
-        // Arrange
-        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
-        updateDTO.setRateLimit(100.0);
-        updateDTO.setBurstLimit(null);
-
-        // Act & Assert
-        AtmLayerException thrown = assertThrows(
-                AtmLayerException.class,
-                () -> apiKeyService.buildPatchOperation(updateDTO),
-                "Expected buildPatchOperation() to throw, but it didn't"
-        );
-
-        assertTrue(thrown.getMessage().contains("Non è possibile specificare solo uno tra rate limit e burst limit"));
-        assertEquals(AppErrorCodeEnum.INVALID_PAYLOAD.getErrorCode(), thrown.getErrorCode());
-    }
-
-    @Test
-    void testBuildPatchOperation_withBurstLimitOnly() {
-        // Arrange
-        UsagePlanUpdateDTO updateDTO = new UsagePlanUpdateDTO();
-        updateDTO.setRateLimit(null);
-        updateDTO.setBurstLimit(200);
-
-        // Act & Assert
-        AtmLayerException thrown = assertThrows(
-                AtmLayerException.class,
-                () -> apiKeyService.buildPatchOperation(updateDTO),
-                "Expected buildPatchOperation() to throw, but it didn't"
-        );
-
-        assertTrue(thrown.getMessage().contains("Non è possibile specificare solo uno tra rate limit e burst limit"));
-        assertEquals(AppErrorCodeEnum.INVALID_PAYLOAD.getErrorCode(), thrown.getErrorCode());
-    }
 
     @Test
     void testBuildPatchOperation_withQuotaLimitOnly() {

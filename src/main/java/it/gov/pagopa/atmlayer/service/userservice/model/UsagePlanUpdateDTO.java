@@ -13,8 +13,6 @@ public class UsagePlanUpdateDTO {
     @Schema(minimum = "1", maximum = "100000000")
     private Double rateLimit;
     @Schema(minimum = "1", maximum = "100000000")
-    private Integer burstLimit;
-    @Schema(minimum = "1", maximum = "100000000")
     private Integer quotaLimit;
 
     private QuotaPeriodType quotaPeriod;

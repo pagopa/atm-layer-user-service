@@ -212,7 +212,6 @@ class BankServiceImplTest {
         input.setAcquirerId("test-acquirer-id");
         input.setDenomination("Denomination");
         input.setRateLimit(100.0);
-        input.setBurstLimit(50);
         input.setLimit(1000);
         input.setPeriod(QuotaPeriodType.MONTH);
 
@@ -250,7 +249,6 @@ class BankServiceImplTest {
         input.setAcquirerId("test-acquirer-id");
         input.setDenomination("New Denomination");
         input.setRateLimit(100.0);
-        input.setBurstLimit(50);
         input.setLimit(1000);
         input.setPeriod(QuotaPeriodType.MONTH);
 
@@ -294,7 +292,6 @@ class BankServiceImplTest {
         input.setAcquirerId("test-acquirer-id");
         input.setDenomination("New Denomination");
         input.setRateLimit(100.0);
-        input.setBurstLimit(50);
         input.setLimit(1000);
         input.setPeriod(QuotaPeriodType.MONTH);
 
@@ -596,7 +593,6 @@ class BankServiceImplTest {
         input.setAcquirerId("test-acquirer-id");
         input.setDenomination("Denomination");
         input.setRateLimit(100.0);
-        input.setBurstLimit(50);
         input.setLimit(1000);
         input.setPeriod(QuotaPeriodType.MONTH);
 
