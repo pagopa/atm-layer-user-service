@@ -53,8 +53,9 @@ public class ApiKeyResource {
     @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
     @APIResponse(responseCode = "404", description = "Token non trovato su AWS con i valori di input inseriti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     @APIResponse(responseCode = "500", description = "AWS non raggiungibile.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    public Uni<ApiKeyDTO> generateApiKey(@HeaderParam("clientName") @Schema(format = "byte", maxLength = 255) String clientName) {
-        return apiKeyService.createApiKey(clientName);
+    public Uni<ApiKeyDTO> generateApiKey(@HeaderParam("clientName") @Schema(format = "byte", maxLength = 255) String clientName,
+                                         @HeaderParam("apiKeyValue") @Schema(format = "byte", maxLength = 255) String apiKeyValue) {
+        return apiKeyService.createApiKey(apiKeyValue, clientName);
     }
 
     @GET

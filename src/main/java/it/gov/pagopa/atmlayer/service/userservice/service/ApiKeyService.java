@@ -9,7 +9,7 @@ import software.amazon.awssdk.services.apigateway.model.QuotaPeriodType;
 
 public interface ApiKeyService {
 
-    Uni<ApiKeyDTO> createApiKey(String clientName);
+    Uni<ApiKeyDTO> createApiKey(String apiKeyValue, String clientName);
 
     Uni<ApiKeyDTO> getApiKey(String clientName);
 

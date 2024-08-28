@@ -53,7 +53,9 @@ class ApiKeyServiceImplTest {
     @Test
     void testCreateApiKeySuccess() {
         String clientName = "testClient";
+        String apiKeyValue = "apiKeyValue";
         CreateApiKeyRequest request = CreateApiKeyRequest.builder()
+                .value(apiKeyValue)
                 .name(clientName + "-api-key")
                 .enabled(true)
                 .build();
@@ -67,11 +69,11 @@ class ApiKeyServiceImplTest {
         when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
         when(apiGatewayClient.createApiKey(request)).thenReturn(response);
 
-        Uni<ApiKeyDTO> apiKeyDTOUni = apiKeyService.createApiKey(clientName);
+        Uni<ApiKeyDTO> apiKeyDTOUni = apiKeyService.createApiKey(apiKeyValue, clientName);
 
         apiKeyDTOUni.subscribe().with(apiKeyDTO -> {
             assertEquals("123", apiKeyDTO.getId());
-            assertEquals("api-key-value", apiKeyDTO.getValue());
+            assertEquals("apiKeyValue", apiKeyDTO.getValue());
             assertEquals(clientName + "-api-key", apiKeyDTO.getName());
         }, throwable -> fail("Expected no exception, but got: " + throwable));
     }
@@ -79,7 +81,9 @@ class ApiKeyServiceImplTest {
     @Test
     void testCreateApiKeyFailure() {
         String clientName = "testClient";
+        String apiKeyValue = "apiKeyValue";
         CreateApiKeyRequest request = CreateApiKeyRequest.builder()
+                .value(apiKeyValue)
                 .name(clientName + "-api-key")
                 .enabled(true)
                 .build();
@@ -87,7 +91,7 @@ class ApiKeyServiceImplTest {
         when(apiGatewayClientConf.getApiGatewayClient()).thenReturn(apiGatewayClient);
         when(apiGatewayClient.createApiKey(request)).thenReturn(CreateApiKeyResponse.builder().build());
 
-        Uni<ApiKeyDTO> apiKeyDTOUni = apiKeyService.createApiKey(clientName);
+        Uni<ApiKeyDTO> apiKeyDTOUni = apiKeyService.createApiKey(apiKeyValue, clientName);
         apiKeyDTOUni.subscribe().with(
                 apiKeyDTO -> fail("Expected an exception, but got: " + apiKeyDTO),
                 throwable -> {
@@ -498,7 +502,7 @@ class ApiKeyServiceImplTest {
 
         // Act & Assert
         AtmLayerException exception = assertThrows(AtmLayerException.class, () -> {
-            apiKeyService.createApiKey("test-client").await().indefinitely();
+            apiKeyService.createApiKey("apiKeyValue", "test-client").await().indefinitely();
         });
 
         assertEquals("La richiesta di CreateApiKey su AWS non è andata a buon fine", exception.getMessage());

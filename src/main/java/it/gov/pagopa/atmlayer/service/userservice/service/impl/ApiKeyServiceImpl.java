@@ -37,9 +37,10 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
 
     @Override
-    public Uni<ApiKeyDTO> createApiKey(String clientName) {
+    public Uni<ApiKeyDTO> createApiKey(String apiKeyValue, String clientName) {
         return Uni.createFrom().item(() -> {
             CreateApiKeyRequest request = CreateApiKeyRequest.builder()
+                    .value(apiKeyValue)
                     .name(clientName + "-api-key")
                     .enabled(true)
                     .build();

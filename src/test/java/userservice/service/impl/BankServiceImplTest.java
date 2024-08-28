@@ -78,7 +78,7 @@ class BankServiceImplTest {
                 .thenReturn(Uni.createFrom().item(Collections.emptyList()));
         when(cognitoService.generateClient(any(String.class)))
                 .thenReturn(Uni.createFrom().item(clientCredentialsDTO));
-        when(apiKeyService.createApiKey(any(String.class)))
+        when(apiKeyService.createApiKey(any(String.class), any(String.class)))
                 .thenReturn(Uni.createFrom().item(apiKeyDTO));
         when(apiKeyService.createUsagePlan(any(BankInsertionDTO.class), any(String.class)))
                 .thenReturn(Uni.createFrom().item(usagePlanDTO));
@@ -93,8 +93,8 @@ class BankServiceImplTest {
 
         assertDoesNotThrow(() -> result.await().indefinitely());
         verify(bankRepository).findAllById(bankInsertionDTO.getAcquirerId());
-        verify(cognitoService).generateClient(apiKeyDTO.getId());
-        verify(apiKeyService).createApiKey(bankEntity.getDenomination());
+        verify(cognitoService).generateClient(bankInsertionDTO.getDenomination());
+        verify(apiKeyService).createApiKey(clientCredentialsDTO.getClientId(), clientCredentialsDTO.getClientName());
         verify(apiKeyService).createUsagePlan(bankInsertionDTO, apiKeyDTO.getId());
         verify(bankRepository).persist(any(BankEntity.class));
     }
@@ -129,7 +129,7 @@ class BankServiceImplTest {
 
         verify(bankRepository).findAllById(bankInsertionDTO.getAcquirerId());
         verify(cognitoService, never()).generateClient(any(String.class));
-        verify(apiKeyService, never()).createApiKey(any(String.class));
+        verify(apiKeyService, never()).createApiKey(any(String.class), any(String.class));
         verify(apiKeyService, never()).createUsagePlan(any(BankInsertionDTO.class), any(String.class));
         verify(bankRepository, never()).persist(any(BankEntity.class));
     }
@@ -155,7 +155,7 @@ class BankServiceImplTest {
                 .thenReturn(Uni.createFrom().item(Collections.singletonList(bankEntity)));
         when(cognitoService.generateClient(any(String.class)))
                 .thenReturn(Uni.createFrom().item(clientCredentialsDTO));
-        when(apiKeyService.createApiKey(any(String.class)))
+        when(apiKeyService.createApiKey(any(String.class), any(String.class)))
                 .thenReturn(Uni.createFrom().item(apiKeyDTO));
         when(apiKeyService.createUsagePlan(any(BankInsertionDTO.class), any(String.class)))
                 .thenReturn(Uni.createFrom().item(usagePlanDTO));
@@ -192,7 +192,7 @@ class BankServiceImplTest {
                 .thenReturn(Uni.createFrom().item(Collections.emptyList()));
         when(cognitoService.generateClient(any(String.class)))
                 .thenReturn(Uni.createFrom().item(clientCredentialsDTO));
-        when(apiKeyService.createApiKey(any(String.class)))
+        when(apiKeyService.createApiKey(any(String.class), any(String.class)))
                 .thenReturn(Uni.createFrom().item(apiKeyDTO));
         when(apiKeyService.createUsagePlan(any(BankInsertionDTO.class), any(String.class)))
                 .thenReturn(Uni.createFrom().item(usagePlanDTO));
@@ -281,8 +281,11 @@ class BankServiceImplTest {
         verify(bankRepository).findById(input.getAcquirerId());
         verify(bankRepository).persist(any(BankEntity.class));
         verify(apiKeyService).updateUsagePlan(anyString(), any());
+        verify(cognitoService).updateClientName(anyString(), anyString());
         verify(apiKeyService).getApiKey(anyString());
         verify(bankMapper).toPresentationDTO(any(), any(), any(), any());
+
+        verifyNoMoreInteractions(bankRepository, apiKeyService, cognitoService, bankMapper);
     }
 
     @Test
