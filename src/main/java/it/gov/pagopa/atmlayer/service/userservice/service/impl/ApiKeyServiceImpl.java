@@ -90,7 +90,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             }
 
             if (bankInsertionDTO.getRateLimit() != null) {
-                usagePlanRequestBuilder.throttle(t -> t.rateLimit(bankInsertionDTO.getRateLimit()));
+                usagePlanRequestBuilder.throttle(t -> t.burstLimit(1).rateLimit(bankInsertionDTO.getRateLimit()));
             }
 
             usagePlanRequestBuilder.apiStages(ApiStage.builder().apiId(apiGatewayId).stage(apiGatewayStage).build());
