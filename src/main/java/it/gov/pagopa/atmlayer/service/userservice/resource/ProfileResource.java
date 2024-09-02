@@ -32,6 +32,19 @@ public class ProfileResource {
     @Inject
     ProfileMapper profileMapper;
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<List<ProfileDTO>> getAll() {
+        return this.profileService.getAll()
+                .onItem()
+                .transform(Unchecked.function(list -> {
+                    if (list.isEmpty()) {
+                        log.info("No Profiles saved in database");
+                    }
+                    return profileMapper.toDTOList(list);
+                }));
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
