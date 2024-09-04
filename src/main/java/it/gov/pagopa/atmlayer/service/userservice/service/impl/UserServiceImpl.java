@@ -108,11 +108,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Uni<PageInfo<User>> getUserFiltered(int pageIndex, int pageSize, String name, String surname, String userId) {
+    public Uni<PageInfo<User>> getUserFiltered(int pageIndex, int pageSize, String name, String surname, String userId, int profileId) {
         Map<String, Object> filters = new HashMap<>();
         filters.put("name", name);
         filters.put("surname", surname);
         filters.put("userId", userId);
+        filters.put("profileId", profileId != 0 ? profileId : null);
         filters.remove(null);
         filters.values().removeAll(Collections.singleton(null));
         filters.values().removeAll(Collections.singleton(""));
