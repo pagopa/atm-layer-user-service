@@ -91,12 +91,13 @@ class UserServiceImplTest {
         String name = "John";
         String surname = "Doe";
         String userId = "123";
+        int profileId = 1;
 
         PageInfo<User> expectedResult = new PageInfo<>(0, 10, 1, 1, usersList);
 
         when(userRepository.findByFilters(anyMap(), eq(pageIndex), eq(pageSize))).thenReturn(Uni.createFrom().item(expectedResult));
 
-        Uni<PageInfo<User>> result = userServiceImpl.getUserFiltered(pageIndex, pageSize, name, surname, userId);
+        Uni<PageInfo<User>> result = userServiceImpl.getUserFiltered(pageIndex, pageSize, name, surname, userId, profileId);
 
         result.subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted()
@@ -110,10 +111,11 @@ class UserServiceImplTest {
         String name = "John";
         String surname = "Doe";
         String userId = "123";
+        int profileId = 1;
 
-        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, name, surname, null).await().indefinitely());
-        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, null, surname, userId).await().indefinitely());
-        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, null, null, null).await().indefinitely());
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, name, surname, null, profileId).await().indefinitely());
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, null, surname, userId, profileId).await().indefinitely());
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, null, null, null, profileId).await().indefinitely());
     }
 
     @Test

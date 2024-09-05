@@ -48,7 +48,7 @@ class UserResourceTest {
         dtoList.add(userDTO);
         PageInfo<UserWithProfilesDTO> pageInfoDTO = new PageInfo<>(0, 10, 1, 1, dtoList);
 
-        when(userService.getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Uni.createFrom().item(pageInfoEntity));
+        when(userService.getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyInt())).thenReturn(Uni.createFrom().item(pageInfoEntity));
         when(userMapper.toFrontEndDTOListPaged(any(PageInfo.class))).thenReturn(pageInfoDTO);
 
         PageInfo<UserWithProfilesDTO> result = given()
@@ -69,7 +69,7 @@ class UserResourceTest {
         assertEquals(pageInfoDTO.getItemsFound(), result.getItemsFound());
         assertEquals(pageInfoDTO.getTotalPages(), result.getTotalPages());
 
-        verify(userService, times(1)).getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString());
+        verify(userService, times(1)).getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyInt());
         verify(userMapper, times(1)).toFrontEndDTOListPaged(any(PageInfo.class));
     }
 
@@ -81,7 +81,7 @@ class UserResourceTest {
         List<UserWithProfilesDTO> dtoList = new ArrayList<>();
         PageInfo<UserWithProfilesDTO> pageInfoDTO = new PageInfo<>(0, 10, 1, 1, dtoList);
 
-        when(userService.getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Uni.createFrom().item(pageInfoEntity));
+        when(userService.getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyInt())).thenReturn(Uni.createFrom().item(pageInfoEntity));
         when(userMapper.toFrontEndDTOListPaged(any(PageInfo.class))).thenReturn(pageInfoDTO);
 
         PageInfo<UserWithProfilesDTO> result = given()
@@ -102,7 +102,7 @@ class UserResourceTest {
         assertEquals(pageInfoDTO.getItemsFound(), result.getItemsFound());
         assertEquals(pageInfoDTO.getTotalPages(), result.getTotalPages());
 
-        verify(userService, times(1)).getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString());
+        verify(userService, times(1)).getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyInt());
         verify(userMapper, times(1)).toFrontEndDTOListPaged(any(PageInfo.class));
     }
 
