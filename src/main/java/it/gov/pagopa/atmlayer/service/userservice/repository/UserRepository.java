@@ -47,16 +47,17 @@ public class UserRepository implements PanacheRepositoryBase<User, String> {
 //    }
 
     public Uni<PageInfo<User>> findByFilters(Map<String, Object> params, int pageIndex, int pageSize) {
-        StringBuilder dataQuery = new StringBuilder("select u from User u left join fetch u.userProfiles up where 1=1 ");
+        StringBuilder dataQuery = new StringBuilder("select distinct u from User u left join fetch u.userProfiles up where 1=1 ");
 
         params.forEach((key, value) -> {
             if (key.equalsIgnoreCase("name") || key.equalsIgnoreCase("surname") || key.equalsIgnoreCase("userId")) {
                 dataQuery.append("and lower(u.").append(key).append(") LIKE lower(concat(:").append(key).append(", '%')) ");
             }
-            if (key.equalsIgnoreCase("profileId")) {
-                dataQuery.append("and up.profile.profileId = :profileId ");
-            }
         });
+
+        if (params.containsKey("profileId")) {
+            dataQuery.append("and exists (select 1 from UserProfiles up2 where up2.user = u and up2.profile.profileId = :profileId) ");
+        }
 
         dataQuery.append("order by u.lastUpdatedAt DESC");
 
@@ -74,5 +75,6 @@ public class UserRepository implements PanacheRepositoryBase<User, String> {
             return Uni.createFrom().item(new PageInfo<>(pageIndex, pageSize, totalCount, totalPages, paginatedUsers));
         });
     }
+
 
 }
