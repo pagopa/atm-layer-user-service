@@ -145,9 +145,13 @@ class UserResourceTest {
                 .when()
                 .post("/api/v1/user-service/users/first-access/{userId}")
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .extract()
+                .as(UserWithProfilesDTO.class);
 
         verify(userService, times(1)).checkFirstAccess(userId);
+        verify(userService, times(1)).getById(userId);
+        verify(userMapper, times(1)).toProfilesDTO(user);
     }
 
 
