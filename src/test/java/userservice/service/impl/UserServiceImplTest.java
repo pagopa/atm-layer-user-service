@@ -10,6 +10,7 @@ import it.gov.pagopa.atmlayer.service.userservice.dto.UserProfilesInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.User;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfiles;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
+import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.UserMapper;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -163,7 +165,7 @@ class UserServiceImplTest {
                 .getItem();
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(user, result);
+        assertEquals(user, result);
 
         verify(userMapper, times(1)).toEntityInsertionWithProfiles(any(UserInsertionWithProfilesDTO.class));
         verify(userRepository, times(1)).findById(user.getUserId());
@@ -327,32 +329,20 @@ class UserServiceImplTest {
 
     @Test
     void testCheckFirstAccessWhenNoUsers() {
+
         long userCount = 0;
 
-        User mockedUser = new User();
-        mockedUser.setUserId("test@test.com");
-
-        UserInsertionWithProfilesDTO userInsertionWithProfilesDTO = new UserInsertionWithProfilesDTO();
-        userInsertionWithProfilesDTO.setUserId("test@test.com");
-        List<Integer> profileIds = new ArrayList<>();
-        profileIds.add(5);
-        userInsertionWithProfilesDTO.setProfileIds(profileIds);
-
         when(userRepository.count()).thenReturn(Uni.createFrom().item(userCount));
-        when(userMapper.toEntityInsertionWithProfiles(any(UserInsertionWithProfilesDTO.class))).thenReturn(mockedUser);
-        when(userRepository.findById(anyString())).thenReturn(Uni.createFrom().nullItem());
-        when(userRepository.persist(any(User.class))).thenReturn(Uni.createFrom().item(mockedUser));
 
-        userServiceImpl.checkFirstAccess(mockedUser.getUserId())
-                .subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertCompleted()
-                .assertItem(null);
+        UniAssertSubscriber<Void> subscriber = userServiceImpl.checkFirstAccess("test@test.com")
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(AtmLayerException.class);
 
         verify(userRepository, times(1)).count();
-        verify(userMapper, times(1)).toEntityInsertionWithProfiles(any(UserInsertionWithProfilesDTO.class));
-        verify(userRepository, times(1)).findById(anyString());
-        verify(userRepository, times(1)).persist(any(User.class));
     }
+
+
 
 
     @Test

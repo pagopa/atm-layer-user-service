@@ -33,7 +33,8 @@ public enum AppErrorCodeEnum {
     AWS_OPERATION_ERROR("ATMLU_4000020", "La richiesta verso AWS è fallita", AWS_ERROR),
     USAGE_PLAN_CREATION_FAILED("ATMLU_4000021", "La creazione dello usage plan non è andata a buon fine", AWS_ERROR),
     API_KEY_CREATION_FAILED("ATMLU_4000022", "La creazione dell'Api-key non è andata a buon fine", AWS_ERROR),
-    CLIENT_CREATION_FAILED("ATMLU_4000023", "La creazione del client Cognito non è andata a buon fine", AWS_ERROR);
+    CLIENT_CREATION_FAILED("ATMLU_4000023", "La creazione del client Cognito non è andata a buon fine", AWS_ERROR),
+    NO_USER_IN_DATABASE("ATMLU_400024", "Nessun utente presente a database, contattare il console admin", NO_USER_FOUND);
 
     private final String errorCode;
     private final String errorMessage;

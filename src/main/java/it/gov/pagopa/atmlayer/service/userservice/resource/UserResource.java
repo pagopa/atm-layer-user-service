@@ -65,12 +65,12 @@ public class UserResource {
     @APIResponse(responseCode = "200", description = "Operazione eseguita con successo. Il processo è terminato.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserWithProfilesDTO.class)))
     @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
     @APIResponse(responseCode = "500", description = "Errore interno.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    public Uni<UserWithProfilesDTO> firstAccess(@PathParam("userId") @Schema(format = "byte", maxLength = 255) String userId) {
-        return this.userService.checkFirstAccess(userId)
-                .onItem()
-                .transformToUni(insertedProfiles -> userService.getById(userId))
-                .onItem()
-                .transformToUni(user -> Uni.createFrom().item(this.userMapper.toProfilesDTO(user)));
+    public Uni<Void> firstAccess(@PathParam("userId") @Schema(format = "byte", maxLength = 255) String userId) {
+        return this.userService.checkFirstAccess(userId);
+//                .onItem()
+//                .transformToUni(insertedProfiles -> userService.getById(userId))
+//                .onItem()
+//                .transformToUni(user -> Uni.createFrom().item(this.userMapper.toProfilesDTO(user)));
     }
 
     @PUT

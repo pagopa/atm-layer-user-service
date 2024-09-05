@@ -13,4 +13,5 @@ public enum AppErrorType {
     NON_EXISTING_ACQUIRER_ID,
     COMMUNICATION_ERROR,
     AWS_ERROR,
+    NO_USER_FOUND
 }

@@ -144,20 +144,21 @@ public class UserServiceImpl implements UserService {
 
         return countUsers()
                 .onItem()
-                .transformToUni(count -> {
+                .transformToUni(Unchecked.function(count -> {
                     if (count == 0) {
-                        UserInsertionWithProfilesDTO userInsertionWithProfilesDTO = new UserInsertionWithProfilesDTO();
-                        List<Integer> profile = new ArrayList<>();
-                        profile.add(5);
-                        userInsertionWithProfilesDTO.setUserId(userId);
-                        userInsertionWithProfilesDTO.setProfileIds(profile);
-                        userInsertionWithProfilesDTO.setName("");
-                        userInsertionWithProfilesDTO.setSurname("");
-                        return insertUserWithProfiles(userInsertionWithProfilesDTO)
-                                .onItem()
-                                .transformToUni(list -> Uni.createFrom().voidItem());
+//                        UserInsertionWithProfilesDTO userInsertionWithProfilesDTO = new UserInsertionWithProfilesDTO();
+//                        List<Integer> profile = new ArrayList<>();
+//                        profile.add(5);
+//                        userInsertionWithProfilesDTO.setUserId(userId);
+//                        userInsertionWithProfilesDTO.setProfileIds(profile);
+//                        userInsertionWithProfilesDTO.setName("");
+//                        userInsertionWithProfilesDTO.setSurname("");
+//                        return insertUserWithProfiles(userInsertionWithProfilesDTO)
+//                                .onItem()
+//                                .transformToUni(list -> Uni.createFrom().voidItem());
+                        throw new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.NO_USER_IN_DATABASE);
                     }
                     return Uni.createFrom().voidItem();
-                });
+                }));
     }
 }
