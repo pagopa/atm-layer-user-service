@@ -21,30 +21,6 @@ public class ApiKeyResource {
     @Inject
     ApiKeyServiceImpl apiKeyService;
 
-    @GET
-    @Path("/api-key/retrieve/{apiKeyId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(operationId = "getApiKey", summary = "Restituisce l'api-key se presente", description = "Esegue la GET su AWS e restituisce l'api-key trovata tramite i valori di input")
-    @APIResponse(responseCode = "200", description = "Operazione eseguita con successo. Il processo è terminato.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiKeyDTO.class)))
-    @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
-    @APIResponse(responseCode = "404", description = "Token non trovato su AWS con i valori di input inseriti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    @APIResponse(responseCode = "500", description = "AWS non raggiungibile.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    public Uni<ApiKeyDTO> getApiKey(@PathParam("apiKeyId") @Schema(format = "byte", maxLength = 255) String apiKeyId) {
-        return apiKeyService.getApiKey(apiKeyId);
-    }
-
-    @DELETE
-    @Path("/api-key/delete/{apiKeyId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(operationId = "deleteApiKey", summary = "Cancella l'api-key se presente", description = "Esegue la DELETE su AWS")
-    @APIResponse(responseCode = "204", description = "Operazione eseguita con successo. Il processo è terminato.")
-    @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
-    @APIResponse(responseCode = "404", description = "Token non trovato su AWS con i valori di input inseriti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    @APIResponse(responseCode = "500", description = "AWS non raggiungibile.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    public Uni<Void> deleteApiKey(@PathParam("apiKeyId") @Size(max=255) String apiKeyId) {
-        return apiKeyService.deleteApiKey(apiKeyId);
-    }
-
     @POST
     @Path("/api-key/generate")
     @Produces(MediaType.APPLICATION_JSON)

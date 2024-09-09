@@ -83,8 +83,8 @@ public class BankResource {
     @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
     @APIResponse(responseCode = "404", description = "Nessuna banca corrisponde ai filtri di ricerca", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     @APIResponse(responseCode = "500", description = "Errore interno.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    public Uni<PageInfo<BankDTO>> search(@QueryParam("pageIndex") @DefaultValue("0") @Parameter(required = true, schema = @Schema(type = SchemaType.INTEGER, minimum = "0", maximum = "10000")) int pageIndex,
-                                         @QueryParam("pageSize") @DefaultValue("10") @Parameter(required = true, schema = @Schema(type = SchemaType.INTEGER, minimum = "1", maximum = "100")) int pageSize,
+    public Uni<PageInfo<BankDTO>> search(@QueryParam("pageIndex") @DefaultValue("0") @Parameter(required = true, schema = @Schema(minimum = "0", maximum = "10000")) int pageIndex,
+                                         @QueryParam("pageSize") @DefaultValue("10") @Parameter(required = true, schema = @Schema(minimum = "1", maximum = "100")) int pageSize,
                                          @QueryParam("acquirerId") @Schema(format = "byte", maxLength = 255) String acquirerId,
                                          @QueryParam("denomination") @Schema(format = "byte", maxLength = 255) String denomination,
                                          @QueryParam("clientId")@Schema(format = "byte", maxLength = 255) String clientId) {
