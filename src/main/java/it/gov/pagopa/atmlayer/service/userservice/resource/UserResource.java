@@ -167,7 +167,7 @@ public class UserResource {
                                                               @QueryParam("name") @Schema(format = "byte", maxLength = 255) String name,
                                                               @QueryParam("surname") @Schema(format = "byte", maxLength = 255) String surname,
                                                               @QueryParam("userId") @Schema(format = "byte", maxLength = 255) String userId,
-                                                              @QueryParam("profileId") @Schema(minimum = "1", maximum = "10") int profileId) {
+                                                              @QueryParam("profileNumber") @Schema(minimum = "1", maximum = "10") int profileId) {
         return userService.getUserFiltered(pageIndex, pageSize, name, surname, userId, profileId)
                 .onItem()
                 .transformToUni(Unchecked.function(pagedList -> {
