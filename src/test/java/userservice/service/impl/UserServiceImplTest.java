@@ -180,7 +180,7 @@ class UserServiceImplTest {
 
         userServiceImpl.insertUserWithProfiles(userInsertionWithProfilesDTO)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailedWith(AtmLayerException.class, "Un utente con lo stesso id esiste già");
+                .assertFailedWith(AtmLayerException.class, "Esiste già un utente associato all'indirizzo email indicato");
     }
 
     @Test
@@ -202,7 +202,7 @@ class UserServiceImplTest {
         userServiceImpl.insertUser(userInsertionDTO)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertFailed()
-                .assertFailedWith(AtmLayerException.class, "Un utente con lo stesso id esiste già");
+                .assertFailedWith(AtmLayerException.class, "Esiste già un utente associato all'indirizzo email indicato");
 
         verify(userRepository, never()).persist(any(User.class));
     }

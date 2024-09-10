@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
                 .onItem()
                 .transformToUni(Unchecked.function(x -> {
                     if (x != null) {
-                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.USER_WITH_SAME_ID_ALREADY_EXIST);
+                        throw new AtmLayerException("Esiste già un utente associato all'indirizzo email indicato", Response.Status.BAD_REQUEST, AppErrorCodeEnum.USER_WITH_SAME_ID_ALREADY_EXIST);
                     }
                     return userRepository.persist(user);
                 }));
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
                 .onItem()
                 .transformToUni(Unchecked.function(x -> {
                     if (x != null) {
-                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.USER_WITH_SAME_ID_ALREADY_EXIST);
+                        throw new AtmLayerException("Esiste già un utente associato all'indirizzo email indicato", Response.Status.BAD_REQUEST, AppErrorCodeEnum.USER_WITH_SAME_ID_ALREADY_EXIST);
                     }
                     return userRepository.persist(user);
                 }));

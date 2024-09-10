@@ -15,7 +15,7 @@ public enum AppErrorCodeEnum {
     USER_PROFILE_WITH_SAME_ID_ALREADY_EXIST("ATMLU_4000002", "Un profilo utente con lo stesso id esiste già", CONSTRAINT_VIOLATION),
     NO_USER_PROFILE_FOUND_FOR_ID("ATMLU_4000003", "Nessun utente trovato per l'id selezionato", NOT_EXISTING_USER_ID),
     NO_USER_PROFILE_FOUND_FOR_PROFILE("ATMLU_4000004", "Nessun profilo utente trovato", NOT_EXISTING_USER_PROFILE),
-    USER_WITH_SAME_ID_ALREADY_EXIST("ATMLU_4000005", "Un utente con lo stesso id esiste già", CONSTRAINT_VIOLATION),
+    USER_WITH_SAME_ID_ALREADY_EXIST("ATMLU_4000005", "Esiste già un utente associato all'indirizzo email indicato", CONSTRAINT_VIOLATION),
     USER_PROFILE_ALREADY_EXIST("ATMLU_4000006", "Profilo già associato all'utente", CONSTRAINT_VIOLATION),
     NO_USER_PROFILE_FOUND("ATMLU_4000007", "Nessun user profile trovato", CONSTRAINT_VIOLATION),
     NO_USER_FOUND_FOR_ID("ATMLU_4000008", "Nessun utente trovato per l'id selezionato", NOT_EXISTING_USER_ID),
