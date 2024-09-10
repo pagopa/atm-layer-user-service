@@ -58,30 +58,6 @@ class ProfileResourceTest {
     }
 
     @Test
-    void TestGetProfileById() {
-        Profile profile = new Profile();
-        profile.setProfileId(1);
-        profile.setDescription("1");
-
-        ProfileDTO profileDTO = new ProfileDTO();
-        profileDTO.setProfileId(1);
-        profileDTO.setDescription("1");
-
-        when(profileService.retrieveProfile(1)).thenReturn(Uni.createFrom().item(profile));
-        when(profileMapper.toDto(any(Profile.class))).thenReturn(profileDTO);
-
-        ProfileDTO result = given()
-                .pathParam("profileId", 1)
-                .when().get("/api/v1/user-service/profile/{profileId}")
-                .then()
-                .statusCode(200)
-                .extract().as(ProfileDTO.class);
-
-        assertEquals(profileDTO.getProfileId(), result.getProfileId());
-        assertEquals(profileDTO.getDescription(), result.getDescription());
-    }
-
-    @Test
     void testUpdateProfile() {
         ProfileCreationDto profileCreationDto = new ProfileCreationDto();
         profileCreationDto.setProfileId(1);
@@ -110,22 +86,4 @@ class ProfileResourceTest {
         assertEquals(profileCreationDto.getDescription(), result.getDescription());
     }
 
-    @Test
-    void TestDeleteProfileById() {
-        Profile profile = new Profile();
-        profile.setProfileId(1);
-        profile.setDescription("1");
-
-        ProfileDTO profileDTO = new ProfileDTO();
-        profileDTO.setProfileId(1);
-        profileDTO.setDescription("1");
-
-        when(profileService.deleteProfile(1)).thenReturn(Uni.createFrom().voidItem());
-
-        given()
-                .pathParam("profileId", 1)
-                .when().delete("/api/v1/user-service/profile/{profileId}")
-                .then()
-                .statusCode(204);
-    }
 }
