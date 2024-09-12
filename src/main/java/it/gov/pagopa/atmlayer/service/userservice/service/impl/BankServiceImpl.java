@@ -148,7 +148,7 @@ public class BankServiceImpl implements BankService {
                                 .transformToUni(bankWithUpdatedName -> cognitoService.updateClientName(bankWithUpdatedName.getClientId(), bankWithUpdatedName.getDenomination())
                                         .onItem()
                                         .transformToUni(updatedClientCredentials ->
-                                                apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getLimit(), input.getPeriod()))
+                                                apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
                                                         .onItem()
                                                         .transformToUni(updatedUsagePlan -> getStaticAWSInfo(bankWithUpdatedName, updatedClientCredentials, updatedUsagePlan))
                                                         .onFailure()
@@ -165,7 +165,7 @@ public class BankServiceImpl implements BankService {
                                 .onFailure().recoverWithUni(throwable -> Uni.createFrom()
                                         .failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.ATML_USER_SERVICE_500)));
                     }
-                    return apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getLimit(), input.getPeriod()))
+                    return apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
                             .onItem()
                             .transformToUni(usagePlan -> getStaticAWSInfo(bankToUpdate, usagePlan))
                             .onFailure()

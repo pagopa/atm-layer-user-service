@@ -125,6 +125,7 @@ class BankResourceTest {
         bankInsertionDTO.setDenomination("Sample Bank");
         bankInsertionDTO.setLimit(10000);
         bankInsertionDTO.setPeriod(QuotaPeriodType.MONTH);
+        bankInsertionDTO.setBurstLimit(500);
         bankInsertionDTO.setRateLimit(0.05);
 
         when(bankService.insertBank(bankInsertionDTO))
@@ -152,6 +153,7 @@ class BankResourceTest {
         bankUpdateDTO.setDenomination("Updated Bank Name");
         bankUpdateDTO.setLimit(20000);
         bankUpdateDTO.setPeriod(QuotaPeriodType.MONTH);
+        bankUpdateDTO.setBurstLimit(1000);
         bankUpdateDTO.setRateLimit(0.10);
 
         when(bankService.updateBank(bankUpdateDTO))

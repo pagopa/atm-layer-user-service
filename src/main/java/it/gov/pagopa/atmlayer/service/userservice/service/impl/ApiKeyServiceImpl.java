@@ -89,8 +89,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 usagePlanRequestBuilder.quota(q -> q.limit(bankInsertionDTO.getLimit()).period(bankInsertionDTO.getPeriod()));
             }
 
-            if (bankInsertionDTO.getRateLimit() != null) {
-                usagePlanRequestBuilder.throttle(t -> t.burstLimit(1).rateLimit(bankInsertionDTO.getRateLimit()));
+            if (bankInsertionDTO.getBurstLimit() != null && bankInsertionDTO.getRateLimit() != null) {
+                usagePlanRequestBuilder.throttle(t -> t.burstLimit(bankInsertionDTO.getBurstLimit()).rateLimit(bankInsertionDTO.getRateLimit()));
             }
 
             usagePlanRequestBuilder.apiStages(ApiStage.builder().apiId(apiGatewayId).stage(apiGatewayStage).build());
@@ -156,6 +156,9 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     public List<PatchOperation> buildPatchOperation(UsagePlanUpdateDTO updateDTO) {
+        if ((updateDTO.getBurstLimit() == null && updateDTO.getRateLimit() != null) || (updateDTO.getBurstLimit() != null && updateDTO.getRateLimit() == null)) {
+            throw new AtmLayerException("Non è possibile specificare solo uno tra rate limit e burst limit", Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
+        }
         if ((updateDTO.getQuotaLimit() == null && updateDTO.getQuotaPeriod() != null) || (updateDTO.getQuotaLimit() != null && updateDTO.getQuotaPeriod() == null)) {
             throw new AtmLayerException("Non è possibile specificare solo uno tra quota limit e quota period", Response.Status.BAD_REQUEST, AppErrorCodeEnum.INVALID_PAYLOAD);
         }
@@ -168,6 +171,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         Optional.ofNullable(updateDTO.getRateLimit()).ifPresentOrElse(
                 rateLimit -> patchOperations.add(PatchOperation.builder().op(Op.REPLACE).path(RATE_LIMIT.getPath()).value(String.valueOf(rateLimit)).build()),
                 () -> patchOperations.add(PatchOperation.builder().op(Op.REMOVE).path(THROTTLE.getPath()).build()));
+        Optional.ofNullable(updateDTO.getBurstLimit()).ifPresent(burstLimit -> patchOperations.add(PatchOperation.builder().op(Op.REPLACE).path(BURST_LIMIT.getPath()).value(String.valueOf(burstLimit)).build()));
         log.info("-------- prepared patchOperations: {}", patchOperations);
         return patchOperations;
     }
