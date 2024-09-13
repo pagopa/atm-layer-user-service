@@ -36,23 +36,19 @@ class BankResourceTest {
 
     @Test
     void testSearch() {
-        // Dati di test per la risposta del servizio
         List<BankEntity> bankList = new ArrayList<>();
-        BankEntity bank = new BankEntity(); // Crea un oggetto Bank e imposta le sue proprietà se necessario
+        BankEntity bank = new BankEntity();
         bankList.add(bank);
         PageInfo<BankEntity> pageInfoEntity = new PageInfo<>(0, 10, 1, 1, bankList);
 
-        // Dati di test per il mapping a DTO
         List<BankDTO> dtoList = new ArrayList<>();
-        BankDTO bankDTO = new BankDTO(); // Crea un oggetto BankDTO e imposta le sue proprietà se necessario
+        BankDTO bankDTO = new BankDTO();
         dtoList.add(bankDTO);
         PageInfo<BankDTO> pageInfoDTO = new PageInfo<>(0, 10, 1, 1, dtoList);
 
-        // Mock dei servizi
         when(bankService.searchBanks(anyInt(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Uni.createFrom().item(pageInfoEntity));
         when(bankMapper.toDtoPaged(any(PageInfo.class))).thenReturn(pageInfoDTO);
 
-        // Esecuzione della richiesta e verifica del risultato
         PageInfo<BankDTO> result = given()
                 .when()
                 .queryParam("pageIndex", 0)
@@ -67,31 +63,25 @@ class BankResourceTest {
                 .body()
                 .as(new TypeRef<>() {});
 
-        // Verifica che i risultati corrispondano a quelli aspettati
         assertEquals(dtoList.size(), result.getResults().size());
         assertEquals(pageInfoDTO.getItemsFound(), result.getItemsFound());
         assertEquals(pageInfoDTO.getTotalPages(), result.getTotalPages());
 
-        // Verifica che i servizi siano stati chiamati esattamente una volta
         verify(bankService, times(1)).searchBanks(anyInt(), anyInt(), anyString(), anyString(), anyString());
         verify(bankMapper, times(1)).toDtoPaged(any(PageInfo.class));
     }
 
     @Test
     void testSearchEmptyList() {
-        // Dati di test per la risposta del servizio con lista vuota
         List<BankEntity> bankList = new ArrayList<>();
         PageInfo<BankEntity> pageInfoEntity = new PageInfo<>(0, 10, 0, 1, bankList);
 
-        // Dati di test per il mapping a DTO
         List<BankDTO> dtoList = new ArrayList<>();
         PageInfo<BankDTO> pageInfoDTO = new PageInfo<>(0, 10, 0, 1, dtoList);
 
-        // Mock dei servizi
         when(bankService.searchBanks(anyInt(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Uni.createFrom().item(pageInfoEntity));
         when(bankMapper.toDtoPaged(any(PageInfo.class))).thenReturn(pageInfoDTO);
 
-        // Esecuzione della richiesta e verifica del risultato
         PageInfo<BankDTO> result = given()
                 .when()
                 .queryParam("pageIndex", 0)
@@ -106,12 +96,10 @@ class BankResourceTest {
                 .body()
                 .as(new TypeRef<>() {});
 
-        // Verifica che i risultati siano vuoti
         assertEquals(0, result.getResults().size());
         assertEquals(pageInfoDTO.getItemsFound(), result.getItemsFound());
         assertEquals(pageInfoDTO.getTotalPages(), result.getTotalPages());
 
-        // Verifica che i servizi siano stati chiamati esattamente una volta
         verify(bankService, times(1)).searchBanks(anyInt(), anyInt(), anyString(), anyString(), anyString());
         verify(bankMapper, times(1)).toDtoPaged(any(PageInfo.class));
     }
@@ -126,7 +114,7 @@ class BankResourceTest {
         bankInsertionDTO.setLimit(10000);
         bankInsertionDTO.setPeriod(QuotaPeriodType.MONTH);
         bankInsertionDTO.setBurstLimit(500);
-        bankInsertionDTO.setRateLimit(0.05);
+        bankInsertionDTO.setRateLimit(1.05);
 
         when(bankService.insertBank(bankInsertionDTO))
                 .thenReturn(Uni.createFrom().item(bankPresentationDTO));
@@ -154,7 +142,7 @@ class BankResourceTest {
         bankUpdateDTO.setLimit(20000);
         bankUpdateDTO.setPeriod(QuotaPeriodType.MONTH);
         bankUpdateDTO.setBurstLimit(1000);
-        bankUpdateDTO.setRateLimit(0.10);
+        bankUpdateDTO.setRateLimit(1.10);
 
         when(bankService.updateBank(bankUpdateDTO))
                 .thenReturn(Uni.createFrom().item(bankPresentationDTO));
