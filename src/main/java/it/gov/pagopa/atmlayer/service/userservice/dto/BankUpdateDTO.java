@@ -17,16 +17,13 @@ public class BankUpdateDTO {
     @Schema(format = "byte", maxLength = 255)
     private String denomination;
     @Schema(minimum = "1", maximum = "100000000")
-    @Nullable
     @Min(1)
     private Integer limit;
     private QuotaPeriodType period;
     @Schema(minimum = "1", maximum = "100000000")
-    @Nullable
     @Min(1)
     private Integer burstLimit;
     @Schema(minimum = "1", maximum = "100000000")
-    @Nullable
     @Min(1)
     private Double rateLimit;
 }
