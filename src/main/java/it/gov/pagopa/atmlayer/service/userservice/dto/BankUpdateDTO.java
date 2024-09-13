@@ -30,4 +30,3 @@ public class BankUpdateDTO {
     @Min(1)
     private Double rateLimit;
 }
-ra
