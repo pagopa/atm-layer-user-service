@@ -165,11 +165,14 @@ public class BankServiceImpl implements BankService {
                                 .onFailure().recoverWithUni(throwable -> Uni.createFrom()
                                         .failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.ATML_USER_SERVICE_500)));
                     }
-                    return apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
+                    return bankRepository.persist(bankToUpdate)
                             .onItem()
-                            .transformToUni(usagePlan -> getStaticAWSInfo(bankToUpdate, usagePlan))
-                            .onFailure()
-                            .recoverWithUni(throwable -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR)));
+                            .transformToUni( bankWithUpdatedTimestamp ->
+                                    apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
+                                    .onItem()
+                                    .transformToUni(usagePlan -> getStaticAWSInfo(bankToUpdate, usagePlan))
+                                    .onFailure()
+                                    .recoverWithUni(throwable -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR))));
                 }));
     }
 
