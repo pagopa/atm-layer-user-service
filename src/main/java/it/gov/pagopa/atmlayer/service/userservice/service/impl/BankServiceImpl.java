@@ -140,39 +140,29 @@ public class BankServiceImpl implements BankService {
                     if (bankToUpdate == null) {
                         throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.BANK_NOT_FOUND);
                     }
-                    if (!Objects.equals(bankToUpdate.getDenomination(), input.getDenomination())){
-                        String oldName = bankToUpdate.getDenomination();
-                        bankToUpdate.setDenomination(input.getDenomination());
-                        return bankRepository.persist(bankToUpdate)
-                                .onItem()
-                                .transformToUni(bankWithUpdatedName -> cognitoService.updateClientName(bankWithUpdatedName.getClientId(), bankWithUpdatedName.getDenomination())
-                                        .onItem()
-                                        .transformToUni(updatedClientCredentials ->
-                                                apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
-                                                        .onItem()
-                                                        .transformToUni(updatedUsagePlan -> getStaticAWSInfo(bankWithUpdatedName, updatedClientCredentials, updatedUsagePlan))
-                                                        .onFailure()
-                                                        .recoverWithUni(throwable -> cognitoService.updateClientName(bankToUpdate.getClientId(), oldName)
-                                                                .onItem()
-                                                                .transformToUni(rollBackClient -> Uni.createFrom()
-                                                                        .failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR)))))
-                                        .onFailure().recoverWithUni(throwable -> {
-                                            bankToUpdate.setDenomination(oldName);
-                                            return bankRepository.persist(bankToUpdate)
-                                                    .onItem().transformToUni(rollBackEntity -> Uni.createFrom()
-                                                            .failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR)));
-                                        }))
-                                .onFailure().recoverWithUni(throwable -> Uni.createFrom()
-                                        .failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.ATML_USER_SERVICE_500)));
-                    }
+                    String oldName = bankToUpdate.getDenomination();
+                    bankToUpdate.setDenomination(input.getDenomination());
                     return bankRepository.persist(bankToUpdate)
                             .onItem()
-                            .transformToUni( bankWithUpdatedTimestamp ->
-                                    apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
+                            .transformToUni(bankWithUpdatedName -> cognitoService.updateClientName(bankWithUpdatedName.getClientId(), bankWithUpdatedName.getDenomination())
                                     .onItem()
-                                    .transformToUni(usagePlan -> getStaticAWSInfo(bankToUpdate, usagePlan))
-                                    .onFailure()
-                                    .recoverWithUni(throwable -> Uni.createFrom().failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR))));
+                                    .transformToUni(updatedClientCredentials ->
+                                            apiKeyService.updateUsagePlan(bankToUpdate.getUsagePlanId(), new UsagePlanUpdateDTO(input.getRateLimit(), input.getBurstLimit(), input.getLimit(), input.getPeriod()))
+                                                    .onItem()
+                                                    .transformToUni(updatedUsagePlan -> getStaticAWSInfo(bankWithUpdatedName, updatedClientCredentials, updatedUsagePlan))
+                                                    .onFailure()
+                                                    .recoverWithUni(throwable -> cognitoService.updateClientName(bankToUpdate.getClientId(), oldName)
+                                                            .onItem()
+                                                            .transformToUni(rollBackClient -> Uni.createFrom()
+                                                                    .failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR)))))
+                                    .onFailure().recoverWithUni(throwable -> {
+                                        bankToUpdate.setDenomination(oldName);
+                                        return bankRepository.persist(bankToUpdate)
+                                                .onItem().transformToUni(rollBackEntity -> Uni.createFrom()
+                                                        .failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR)));
+                                    }))
+                            .onFailure().recoverWithUni(throwable -> Uni.createFrom()
+                                    .failure(new AtmLayerException(throwable.getMessage(), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.ATML_USER_SERVICE_500)));
                 }));
     }
 
