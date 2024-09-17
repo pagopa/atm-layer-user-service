@@ -21,6 +21,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -142,6 +144,7 @@ public class BankServiceImpl implements BankService {
                     }
                     String oldName = bankToUpdate.getDenomination();
                     bankToUpdate.setDenomination(input.getDenomination());
+                    bankToUpdate.setLastUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
                     return bankRepository.persist(bankToUpdate)
                             .onItem()
                             .transformToUni(bankWithUpdatedName -> cognitoService.updateClientName(bankWithUpdatedName.getClientId(), bankWithUpdatedName.getDenomination())
