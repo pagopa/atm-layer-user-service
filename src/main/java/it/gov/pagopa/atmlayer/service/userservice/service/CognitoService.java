@@ -9,5 +9,7 @@ public interface CognitoService {
 
     Uni<ClientCredentialsDTO> generateClient(String clientName);
 
+    Uni<ClientCredentialsDTO> updateClientName(String clientId, String clientName);
+
     Uni<Void> deleteClient(String clientId);
 }

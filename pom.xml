@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>it.gov.pagopa</groupId>
   <artifactId>atm-layer-user-service</artifactId>
-  <version>1.0.0-SnapShot</version>
+  <version>0.1.0-dev.73</version>
   <properties>
     <jacoco.version>0.8.11</jacoco.version>
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
@@ -195,6 +195,12 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jacoco</artifactId>
 
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
       <scope>test</scope>
     </dependency>
 

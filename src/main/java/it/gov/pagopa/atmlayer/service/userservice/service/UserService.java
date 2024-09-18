@@ -27,7 +27,7 @@ public interface UserService {
 
     Uni<List<User>> getAllUsers();
 
-    Uni<PageInfo<User>> getUserFiltered(int pageIndex, int pageSize, String name, String surname, String userId);
+    Uni<PageInfo<User>> getUserFiltered(int pageIndex, int pageSize, String name, String surname, String userId, int profileId);
 
     Uni<Long> countUsers();
 

@@ -2,6 +2,7 @@ package userservice.resource;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.common.mapper.TypeRef;
 import io.smallrye.mutiny.Uni;
 import it.gov.pagopa.atmlayer.service.userservice.dto.UserInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.UserInsertionWithProfilesDTO;
@@ -10,6 +11,7 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.User;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfiles;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.UserMapper;
+import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import it.gov.pagopa.atmlayer.service.userservice.repository.UserRepository;
 import it.gov.pagopa.atmlayer.service.userservice.service.UserService;
 import jakarta.ws.rs.core.MediaType;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -32,6 +35,76 @@ class UserResourceTest {
     UserRepository userRepository;
     @InjectMock
     UserService userService;
+
+    @Test
+    void testGetUserFiltered() {
+        List<User> userList = new ArrayList<>();
+        User user = new User();
+        userList.add(user);
+        PageInfo<User> pageInfoEntity = new PageInfo<>(0, 10, 1, 1, userList);
+
+        List<UserWithProfilesDTO> dtoList = new ArrayList<>();
+        UserWithProfilesDTO userDTO = new UserWithProfilesDTO();
+        dtoList.add(userDTO);
+        PageInfo<UserWithProfilesDTO> pageInfoDTO = new PageInfo<>(0, 10, 1, 1, dtoList);
+
+        when(userService.getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyInt())).thenReturn(Uni.createFrom().item(pageInfoEntity));
+        when(userMapper.toFrontEndDTOListPaged(any(PageInfo.class))).thenReturn(pageInfoDTO);
+
+        PageInfo<UserWithProfilesDTO> result = given()
+                .when()
+                .queryParam("pageIndex", 0)
+                .queryParam("pageSize", 10)
+                .queryParam("name", "John")
+                .queryParam("surname", "Doe")
+                .queryParam("userId", "user123")
+                .get("/api/v1/user-service/users/filter")
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .as(new TypeRef<>() {});
+
+        assertEquals(dtoList.size(), result.getResults().size());
+        assertEquals(pageInfoDTO.getItemsFound(), result.getItemsFound());
+        assertEquals(pageInfoDTO.getTotalPages(), result.getTotalPages());
+
+        verify(userService, times(1)).getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyInt());
+        verify(userMapper, times(1)).toFrontEndDTOListPaged(any(PageInfo.class));
+    }
+
+
+    @Test
+    void testGetUserFilteredEmptyList() {
+        List<User> userList = new ArrayList<>();
+        PageInfo<User> pageInfoEntity = new PageInfo<>(0, 10, 1, 1, userList);
+        List<UserWithProfilesDTO> dtoList = new ArrayList<>();
+        PageInfo<UserWithProfilesDTO> pageInfoDTO = new PageInfo<>(0, 10, 1, 1, dtoList);
+
+        when(userService.getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyInt())).thenReturn(Uni.createFrom().item(pageInfoEntity));
+        when(userMapper.toFrontEndDTOListPaged(any(PageInfo.class))).thenReturn(pageInfoDTO);
+
+        PageInfo<UserWithProfilesDTO> result = given()
+                .when()
+                .queryParam("pageIndex", 0)
+                .queryParam("pageSize", 10)
+                .queryParam("name", "John")
+                .queryParam("surname", "Doe")
+                .queryParam("userId", "user123")
+                .get("/api/v1/user-service/users/filter")
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .as(new TypeRef<>() {});
+
+        assertEquals(0, result.getResults().size());
+        assertEquals(pageInfoDTO.getItemsFound(), result.getItemsFound());
+        assertEquals(pageInfoDTO.getTotalPages(), result.getTotalPages());
+
+        verify(userService, times(1)).getUserFiltered(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyInt());
+        verify(userMapper, times(1)).toFrontEndDTOListPaged(any(PageInfo.class));
+    }
 
     @Test
     void testInsert() {
@@ -108,6 +181,36 @@ class UserResourceTest {
     }
 
     @Test
+    void testUpdateWithProfiles() {
+        UserWithProfilesDTO userWithProfilesDTO = new UserWithProfilesDTO();
+        UserInsertionWithProfilesDTO userInsertionWithProfilesDTO = new UserInsertionWithProfilesDTO();
+        User updatedUser = new User();
+        User insertedUser = new User();
+
+        userInsertionWithProfilesDTO.setUserId("Paolo@Rossi.com");
+        userInsertionWithProfilesDTO.setProfileIds(Arrays.asList(1, 2, 3));
+
+        when(userService.updateWithProfiles(userInsertionWithProfilesDTO))
+                .thenReturn(Uni.createFrom().item(updatedUser));
+        when(userRepository.findByIdCustom(userInsertionWithProfilesDTO.getUserId()))
+                .thenReturn(Uni.createFrom().item(insertedUser));
+        when(userMapper.toProfilesDTO(insertedUser))
+                .thenReturn(userWithProfilesDTO);
+
+        UserWithProfilesDTO result = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(userInsertionWithProfilesDTO)
+                .when()
+                .put("api/v1/user-service/users/update-with-profiles")
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(UserWithProfilesDTO.class);
+
+        assertEquals(userWithProfilesDTO, result);
+    }
+
+    @Test
     void testInsertWithProfiles() {
         User user = new User();
         UserProfiles userProfiles = new UserProfiles();
@@ -162,52 +265,6 @@ class UserResourceTest {
                 .statusCode(204);
 
         verify(userService, times(1)).deleteUser(userId);
-    }
-
-    @Test
-    void testGetAll() {
-        List<User> users = new ArrayList<>();
-        User user = new User();
-        users.add(user);
-        List<UserWithProfilesDTO> dtoList = new ArrayList<>();
-        UserWithProfilesDTO userWithProfilesDTO = new UserWithProfilesDTO();
-        dtoList.add(userWithProfilesDTO);
-
-        when(userService.getAllUsers()).thenReturn(Uni.createFrom().item(users));
-        when(userMapper.toDTOList(any(List.class))).thenReturn(dtoList);
-
-        ArrayList result = given()
-                .when().get("/api/v1/user-service/users")
-                .then()
-                .statusCode(200)
-                .extract()
-                .body()
-                .as(ArrayList.class);
-
-        assertEquals(1, result.size());
-        verify(userService, times(1)).getAllUsers();
-        verify(userMapper, times(1)).toDTOList(users);
-    }
-
-    @Test
-    void testGetAllEmpty() {
-        List<User> users = new ArrayList<>();
-        List<UserWithProfilesDTO> dtoList = new ArrayList<>();
-
-        when(userService.getAllUsers()).thenReturn(Uni.createFrom().item(users));
-        when(userMapper.toDTOList(any(List.class))).thenReturn(dtoList);
-
-        ArrayList result = given()
-                .when().get("/api/v1/user-service/users")
-                .then()
-                .statusCode(200)
-                .extract()
-                .body()
-                .as(ArrayList.class);
-
-        assertEquals(0, result.size());
-        verify(userService, times(1)).getAllUsers();
-        verify(userMapper, times(1)).toDTOList(users);
     }
 
     @Test

@@ -2,20 +2,20 @@ package it.gov.pagopa.atmlayer.service.userservice.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import software.amazon.awssdk.services.apigateway.model.Op;
 
 @Getter
 @AllArgsConstructor
 public enum UsagePlanPatchOperations {
 
-    RATE_LIMIT(Op.REPLACE,"/throttle/rateLimit"),
-    BURST_LIMIT(Op.REPLACE, "/throttle/burstLimit"),
-    QUOTA_LIMIT(Op.REPLACE, "/quota/limit"),
-    QUOTA_PERIOD(Op.REPLACE, "/quota/period"),
-    NAME(Op.REPLACE, "/name"),
-    DESCRIPTION(Op.REPLACE, "/description");
+    THROTTLE("/throttle"),
+    QUOTA("/quota"),
+    RATE_LIMIT("/throttle/rateLimit"),
+    BURST_LIMIT("/throttle/burstLimit"),
+    QUOTA_LIMIT("/quota/limit"),
+    QUOTA_PERIOD("/quota/period"),
+    NAME("/name"),
+    DESCRIPTION("/description");
 
-    private final Op op;
     private final String path;
 
 }

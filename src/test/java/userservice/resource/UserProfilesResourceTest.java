@@ -123,46 +123,4 @@ class UserProfilesResourceTest {
         assertEquals(userProfilesDTOList, result);
     }
 
-    @Test
-    void testGetById() {
-        String userId = "1";
-        int profileId = 1;
-        UserProfiles userProfiles = new UserProfiles();
-
-        when(userProfilesService.getById(userId, profileId)).thenReturn(
-                Uni.createFrom().item(userProfiles));
-        UserProfilesDTO dto = new UserProfilesDTO();
-        when(userProfilesMapper.toDTO(userProfiles)).thenReturn(dto);
-
-        given()
-                .pathParam("userId", userId)
-                .pathParam("profileId", profileId)
-                .when()
-                .get("/api/v1/user-service/user_profiles/userId/{userId}/profileId/{profileId}")
-                .then()
-                .statusCode(200);
-
-        verify(userProfilesService, times(1)).getById(userId, profileId);
-        verify(userProfilesMapper, times(1)).toDTO(userProfiles);
-    }
-
-
-    @Test
-    void testDelete() {
-        String userId = "1";
-        int profileId = 1;
-
-        when(userProfilesService.deleteUserProfiles(any(UserProfilesPK.class))).thenReturn(Uni.createFrom().voidItem());
-
-        given()
-                .pathParam("userId", userId)
-                .pathParam("profileId", profileId)
-                .when()
-                .delete("/api/v1/user-service/user_profiles/userId/{userId}/profileId/{profileId}")
-                .then()
-                .statusCode(204);
-
-        verify(userProfilesService, times(1)).deleteUserProfiles(any(UserProfilesPK.class));
-    }
-
 }

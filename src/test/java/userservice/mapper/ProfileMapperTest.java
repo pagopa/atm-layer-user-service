@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @QuarkusTest
-public class ProfileMapperTest {
+class ProfileMapperTest {
     @Inject
     ProfileMapper mapper;
     @Test

@@ -5,14 +5,23 @@ import it.gov.pagopa.atmlayer.service.userservice.dto.UserProfilesDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.UserProfilesInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.UserProfilesMapper;
+import it.gov.pagopa.atmlayer.service.userservice.model.ErrorResponse;
+import it.gov.pagopa.atmlayer.service.userservice.model.ProfileDTO;
+import it.gov.pagopa.atmlayer.service.userservice.model.ValidationErrorResponse;
 import it.gov.pagopa.atmlayer.service.userservice.service.UserProfilesService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
@@ -33,6 +42,10 @@ public class UserProfilesResource {
     @Path("/insert")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(operationId = "createUserProfile", summary = "Restituisce le associazioni tra user e profili create e le salva nel database", description = "Salva sul database le associazioni tra profilo e user e le restituisce")
+    @APIResponse(responseCode = "200", description = "Operazione eseguita con successo. Il processo è terminato.", content = @Content(mediaType = "application/json", schema = @Schema(type = SchemaType.ARRAY, maxItems = 30, implementation = UserProfilesDTO.class)))
+    @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
+    @APIResponse(responseCode = "500", description = "Errore interno.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     public Uni<List<UserProfilesDTO>> insert(@RequestBody(required = true) @Valid UserProfilesInsertionDTO userProfilesInsertionDTO) {
         return this.userProfilesService.insertUserProfiles(userProfilesInsertionDTO)
                 .onItem()
@@ -43,31 +56,46 @@ public class UserProfilesResource {
     @Path("/update")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(operationId = "updateUserProfile", summary = "Aggiorna le associazioni tra user e profili sul database e le restituisce", description = "Salva sul database le associazioni tra profilo e user aggiornate e le restituisce")
+    @APIResponse(responseCode = "200", description = "Operazione eseguita con successo. Il processo è terminato.", content = @Content(mediaType = "application/json", schema = @Schema(type = SchemaType.ARRAY, maxItems = 30, implementation = UserProfilesDTO.class)))
+    @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
+    @APIResponse(responseCode = "404", description = "User non trovato sul database con i valori di input inseriti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(responseCode = "500", description = "Errore interno.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     public Uni<List<UserProfilesDTO>> update(@RequestBody(required = true) @Valid UserProfilesInsertionDTO userProfilesInsertionDTO) {
         return this.userProfilesService.updateUserProfiles(userProfilesInsertionDTO)
                 .onItem()
                 .transform(updatedUserProfiles -> userProfilesMapper.toDtoList(updatedUserProfiles));
     }
 
-    @GET
-    @Path("/userId/{userId}/profileId/{profileId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<UserProfilesDTO> getById(@PathParam("userId") String userId,
-                                        @PathParam("profileId") int profileId) {
-        return this.userProfilesService.getById(userId, profileId)
-                .onItem()
-                .transform(user -> userProfilesMapper.toDTO(user));
-    }
+//    @GET
+//    @Path("/userId/{userId}/profileId/{profileId}")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @Operation(operationId = "getUserProfile", summary = "Restituisce lo user e il profilo associato", description = "Restituisce lo user e il profilo associato")
+//    @APIResponse(responseCode = "200", description = "Operazione eseguita con successo. Il processo è terminato.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserProfilesDTO.class)))
+//    @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
+//    @APIResponse(responseCode = "404", description = "associazione non trovata sul database con i valori di input inseriti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+//    @APIResponse(responseCode = "500", description = "Errore interno.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+//    public Uni<UserProfilesDTO> getById(@PathParam("userId") @Schema(format = "byte", maxLength = 255) String userId,
+//                                        @PathParam("profileId") @Schema(minimum = "1", maximum = "30") int profileId) {
+//        return this.userProfilesService.getById(userId, profileId)
+//                .onItem()
+//                .transform(user -> userProfilesMapper.toDTO(user));
+//    }
 
-    @DELETE
-    @Path("/userId/{userId}/profileId/{profileId}")
-    public Uni<Void> deleteUserProfiles(
-            @PathParam("userId") String userId,
-            @PathParam("profileId") int profileId
-    ) {
-        UserProfilesPK userProfilesPK = new UserProfilesPK(userId, profileId);
-        return this.userProfilesService.deleteUserProfiles(userProfilesPK);
-    }
+//    @DELETE
+//    @Path("/userId/{userId}/profileId/{profileId}")
+//    @Operation(operationId = "deleteUserProfile", summary = "Cancella lo userProfile dal database", description = "Cancella lo userProfile dal database")
+//    @APIResponse(responseCode = "204", description = "Operazione eseguita con successo. Il processo è terminato.")
+//    @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
+//    @APIResponse(responseCode = "404", description = "associazione non trovata sul database con i valori di input inseriti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+//    @APIResponse(responseCode = "500", description = "Errore interno.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+//    public Uni<Void> deleteUserProfiles(
+//            @PathParam("userId") @Schema(format = "byte", maxLength = 255) String userId,
+//            @PathParam("profileId") @Schema(minimum = "1", maximum = "30") int profileId
+//    ) {
+//        UserProfilesPK userProfilesPK = new UserProfilesPK(userId, profileId);
+//        return this.userProfilesService.deleteUserProfiles(userProfilesPK);
+//    }
 
 
 }

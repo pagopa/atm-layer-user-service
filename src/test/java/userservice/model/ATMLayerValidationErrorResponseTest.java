@@ -17,14 +17,14 @@ class ATMLayerValidationErrorResponseTest {
         ValidationErrorResponse errorResponse = ValidationErrorResponse.builder()
                 .errorCode("E001")
                 .type("Validation Error")
-                .status(500)
+                .statusCode(500)
                 .message("Invalid input data")
                 .errors(List.of("Field xxx must be not null"))
                 .build();
 
         assertEquals("E001", errorResponse.getErrorCode());
         assertEquals("Validation Error", errorResponse.getType());
-        assertEquals(500, errorResponse.getStatus());
+        assertEquals(500, errorResponse.getStatusCode());
         assertEquals("Invalid input data", errorResponse.getMessage());
         assertNotNull(errorResponse.getErrors());
         assertEquals(1, errorResponse.getErrors().size());
@@ -36,7 +36,7 @@ class ATMLayerValidationErrorResponseTest {
         ValidationErrorResponse errorResponse = ValidationErrorResponse.builder()
                 .errorCode("E001")
                 .type("Validation Error")
-                .status(500)
+                .statusCode(500)
                 .message("Invalid input data")
                 .errors(List.of("Field xxx must be not null"))
                 .build();

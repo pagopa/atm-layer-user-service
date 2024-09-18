@@ -22,7 +22,7 @@ public class ErrorResponse {
     private String type;
 
     @Schema(example = "500", minimum = "1", maximum = "999")
-    private int status;
+    private int statusCode;
 
     @Schema(example = "An unexpected error has occurred. Please contact support.", maxLength = 1000)
     private String message;

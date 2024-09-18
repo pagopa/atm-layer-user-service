@@ -8,12 +8,14 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.Profile;
 import it.gov.pagopa.atmlayer.service.userservice.entity.User;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfiles;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
+import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.UserProfilesMapper;
 import it.gov.pagopa.atmlayer.service.userservice.repository.ProfileRepository;
 import it.gov.pagopa.atmlayer.service.userservice.repository.UserProfilesRepository;
 import it.gov.pagopa.atmlayer.service.userservice.repository.UserRepository;
 import it.gov.pagopa.atmlayer.service.userservice.service.impl.UserProfilesServiceImpl;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import static it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum.NO_ASSOCIATION_FOUND;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -65,6 +69,60 @@ class UserProfilesServiceImplTest {
         userProfilesInsertionDTO = new UserProfilesInsertionDTO();
         userProfilesInsertionDTO.setProfileIds(profilesIdList);
         userProfilesInsertionDTO.setUserId("prova@test.com");
+    }
+
+    @Test
+    void testHasAtLeastTwoSpecificUserProfilesTrue() {
+        List<UserProfiles> userProfilesList = new ArrayList<>();
+        userProfilesList.add(new UserProfiles());
+        userProfilesList.add(new UserProfiles());
+
+        when(userProfilesRepository.findUserProfilesWithSpecificProfile()).thenReturn(Uni.createFrom().item(userProfilesList));
+
+        Uni<Boolean> result = userProfilesService.hasAtLeastTwoSpecificUserProfiles();
+
+        result.subscribe().with(
+                Assertions::assertTrue,
+                failure -> fail("The test failed due to: " + failure.getMessage())
+        );
+    }
+
+    @Test
+    void testHasAtLeastTwoSpecificUserProfilesFalse() {
+        List<UserProfiles> userProfilesList = new ArrayList<>();
+        userProfilesList.add(new UserProfiles());
+
+        when(userProfilesRepository.findUserProfilesWithSpecificProfile()).thenReturn(Uni.createFrom().item(userProfilesList));
+
+        Uni<Boolean> result = userProfilesService.hasAtLeastTwoSpecificUserProfiles();
+
+        result.subscribe().with(
+                Assertions::assertFalse,
+                failure -> fail("The test failed due to: " + failure.getMessage())
+        );
+    }
+
+    @Test
+    void testCheckAtLeastTwoSpecificUserProfilesSuccess() {
+        when(userProfilesRepository.findUserProfilesWithSpecificProfile())
+                .thenReturn(Uni.createFrom().item(List.of(new UserProfiles(), new UserProfiles())));
+
+        assertDoesNotThrow(() -> userProfilesService.checkAtLeastTwoSpecificUserProfiles().await().indefinitely());
+    }
+
+    @Test
+    void testCheckAtLeastTwoSpecificUserProfilesFailure() {
+        when(userProfilesRepository.findUserProfilesWithSpecificProfile())
+                .thenReturn(Uni.createFrom().item(List.of(new UserProfiles())));
+
+        AtmLayerException thrownException = assertThrows(
+                AtmLayerException.class,
+                () -> userProfilesService.checkAtLeastTwoSpecificUserProfiles().await().indefinitely()
+        );
+
+        assertEquals("Un solo utente ha i permessi di 'Gestione utenti': impossibile eliminarli.", thrownException.getMessage());
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), thrownException.getStatusCode());
+        assertEquals(AppErrorCodeEnum.NO_ASSOCIATION_FOUND.getErrorCode(), thrownException.getErrorCode());
     }
 
     @Test
@@ -251,7 +309,7 @@ class UserProfilesServiceImplTest {
     }
 
     @Test
-    public void testUpdateUserProfiles_Success() {
+    void testUpdateUserProfilesSuccess() {
         UserProfilesInsertionDTO dto = new UserProfilesInsertionDTO();
         dto.setUserId("prova@test.com");
         dto.setProfileIds(List.of(1, 2, 3));
@@ -274,6 +332,40 @@ class UserProfilesServiceImplTest {
         verify(profileRepository, times(3)).findById(anyInt());
         verify(userProfilesRepository).deleteUserProfiles(anyList());
         verify(userProfilesRepository).persist(anyList());
+    }
+
+    @Test
+    void testUpdateUserProfilesShouldCheckAtLeastTwoProfiles() {
+        UserProfilesInsertionDTO dto = new UserProfilesInsertionDTO();
+        dto.setUserId("prova@test.com");
+        dto.setProfileIds(List.of(1, 2, 3));
+
+        UserProfilesPK pkWithId5 = new UserProfilesPK("prova@test.com", 5);
+        UserProfiles userProfileWithId5 = new UserProfiles();
+        userProfileWithId5.setUserProfilesPK(pkWithId5);
+
+        UserProfilesPK pkToUpdate = new UserProfilesPK("prova@test.com", 1);
+        UserProfiles userProfileToUpdate = new UserProfiles();
+        userProfileToUpdate.setUserProfilesPK(pkToUpdate);
+
+        List<UserProfiles> userProfilesToUpdate = List.of(userProfileToUpdate);
+        List<UserProfiles> userProfilesSaved = List.of(userProfileWithId5);
+
+        when(userProfilesMapper.toEntityInsertion(dto)).thenReturn(userProfilesToUpdate);
+        when(userRepository.findById(dto.getUserId())).thenReturn(Uni.createFrom().item(new User()));
+        when(profileRepository.findById(anyInt())).thenReturn(Uni.createFrom().item(new Profile()));
+        when(userProfilesRepository.findByUserId(dto.getUserId())).thenReturn(Uni.createFrom().item(userProfilesSaved));
+        when(userProfilesRepository.deleteUserProfiles(anyList())).thenReturn(Uni.createFrom().item(1L));
+        when(userProfilesRepository.persist(userProfilesToUpdate)).thenReturn(Uni.createFrom().voidItem());
+        when(userProfilesService.hasAtLeastTwoSpecificUserProfiles()).thenReturn(Uni.createFrom().item(true));
+
+        userProfilesService.updateUserProfiles(dto)
+                .subscribe().with(Assertions::assertNotNull);
+
+        verify(userProfilesMapper).toEntityInsertion(dto);
+        verify(userRepository).findById(dto.getUserId());
+        verify(profileRepository, times(3)).findById(anyInt());
+        verify(userProfilesRepository).findByUserId(dto.getUserId());
     }
 
 }
