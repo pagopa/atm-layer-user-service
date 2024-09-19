@@ -18,7 +18,7 @@ class ErrorResponseTest {
     void testErrorResponseSerialization() throws Exception {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .type("error")
-                .status(500)
+                .statusCode(500)
                 .message("An unexpected error has occurred. Please contact support.")
                 .errorCode("ATMLU_500")
                 .build();
@@ -32,14 +32,14 @@ class ErrorResponseTest {
     void testJsonPropertyOrder() {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .type("error")
-                .status(500)
+                .statusCode(500)
                 .message("An unexpected error has occurred. Please contact support.")
                 .errorCode("ATMLU_500")
                 .build();
 
         try {
             String json = objectMapper.writeValueAsString(errorResponse);
-            String expectedJson = "{\"type\":\"error\",\"status\":500,\"message\":\"An unexpected error has occurred. Please contact support.\",\"errorCode\":\"ATMLU_500\"}";
+            String expectedJson = "{\"type\":\"error\",\"statusCode\":500,\"message\":\"An unexpected error has occurred. Please contact support.\",\"errorCode\":\"ATMLU_500\"}";
             assertEquals(expectedJson, json);
         } catch (Exception e) {
             fail("JSON serialization failed: " + e.getMessage());

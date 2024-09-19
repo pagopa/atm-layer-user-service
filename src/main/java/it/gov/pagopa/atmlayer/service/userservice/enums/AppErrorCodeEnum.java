@@ -15,7 +15,7 @@ public enum AppErrorCodeEnum {
     USER_PROFILE_WITH_SAME_ID_ALREADY_EXIST("ATMLU_4000002", "Un profilo utente con lo stesso id esiste già", CONSTRAINT_VIOLATION),
     NO_USER_PROFILE_FOUND_FOR_ID("ATMLU_4000003", "Nessun utente trovato per l'id selezionato", NOT_EXISTING_USER_ID),
     NO_USER_PROFILE_FOUND_FOR_PROFILE("ATMLU_4000004", "Nessun profilo utente trovato", NOT_EXISTING_USER_PROFILE),
-    USER_WITH_SAME_ID_ALREADY_EXIST("ATMLU_4000005", "Un utente con lo stesso id esiste già", CONSTRAINT_VIOLATION),
+    USER_WITH_SAME_ID_ALREADY_EXIST("ATMLU_4000005", "Esiste già un utente associato all'indirizzo email indicato", CONSTRAINT_VIOLATION),
     USER_PROFILE_ALREADY_EXIST("ATMLU_4000006", "Profilo già associato all'utente", CONSTRAINT_VIOLATION),
     NO_USER_PROFILE_FOUND("ATMLU_4000007", "Nessun user profile trovato", CONSTRAINT_VIOLATION),
     NO_USER_FOUND_FOR_ID("ATMLU_4000008", "Nessun utente trovato per l'id selezionato", NOT_EXISTING_USER_ID),
@@ -24,9 +24,17 @@ public enum AppErrorCodeEnum {
     PROFILE_OR_USER_NOT_FOUND("ATMLU_4000011","Utente o profilo non trovato", CONSTRAINT_VIOLATION),
     NO_ASSOCIATION_FOUND("ATMLU_4000012","Nessuna associazione trovata", CONSTRAINT_VIOLATION),
     ALL_FIELDS_ARE_BLANK("ATMLU_4000013", "Tutti i campi sono vuoti", BLANK_FIELDS),
-    BANK_WITH_THE_SAME_ID_ALREADY_EXISTS("ATMLU_4000014", "Una banca con lo stesso acquirerId esiste già", CONSTRAINT_VIOLATION),
-    BANK_NOT_FOUND("ATMLU_4000015", "Non esiste tale acquirerId nel database", NON_EXISTING_ACQUIRER_ID),
-    RATEMIN_GREATER_THAN_RATEMAX("ATMLU_4000016", "rateMax deve essere maggiore di rateMin", CONSTRAINT_VIOLATION);
+    BANK_WITH_THE_SAME_ID_ALREADY_EXISTS("ATMLU_4000014", "Una banca con lo stesso ID esiste già", CONSTRAINT_VIOLATION),
+    BANK_NOT_FOUND("ATMLU_4000015", "Non esiste tale ID nel database", NON_EXISTING_ACQUIRER_ID),
+    RATEMIN_GREATER_THAN_RATEMAX("ATMLU_4000016", "rateMax deve essere maggiore di rateMin", CONSTRAINT_VIOLATION),
+    AWS_COMMUNICATION_ERROR("ATMLU_4000017", "Errore di comunicazione con AWS", COMMUNICATION_ERROR),
+    DATABASE_TRANSACTION_ERROR("ATMLU_4000018", "Errore di comunicazione con il database", COMMUNICATION_ERROR),
+    INVALID_PAYLOAD("ATMLU_4000019", "Il payload della richiesta no è valido", CONSTRAINT_VIOLATION),
+    AWS_OPERATION_ERROR("ATMLU_4000020", "La richiesta verso AWS è fallita", AWS_ERROR),
+    USAGE_PLAN_CREATION_FAILED("ATMLU_4000021", "La creazione dello usage plan non è andata a buon fine", AWS_ERROR),
+    API_KEY_CREATION_FAILED("ATMLU_4000022", "La creazione dell'Api-key non è andata a buon fine", AWS_ERROR),
+    CLIENT_CREATION_FAILED("ATMLU_4000023", "La creazione del client Cognito non è andata a buon fine", AWS_ERROR),
+    NO_USER_IN_DATABASE("ATMLU_400024", "Nessun utente presente a database, contattare il console admin", NO_USER_FOUND);
 
     private final String errorCode;
     private final String errorMessage;

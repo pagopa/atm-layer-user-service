@@ -171,7 +171,7 @@ public class UserProfilesServiceImpl implements UserProfilesService {
                                     List<Integer> userProfilesToUpdateIds = userProfilesToUpdate.stream().map(y -> y.getUserProfilesPK().getProfileId()).toList();
                                     List<UserProfiles> userProfilesToDelete = userProfilesSaved.stream().filter(w -> !userProfilesToUpdateIds.contains(w.getUserProfilesPK().getProfileId())).toList();
                                     List<UserProfiles> userProfilesToAdd = userProfilesToUpdate.stream().filter(j -> !userProfilesSavedIds.contains(j.getUserProfilesPK().getProfileId())).toList();
-                                    if (userProfilesToDelete.stream().anyMatch(p -> p.getUserProfilesPK().getProfileId() == 5)){
+                                    if (userProfilesToDelete.stream().anyMatch(p -> p.getUserProfilesPK().getProfileId() == 5)) {
                                         return checkAtLeastTwoSpecificUserProfiles()
                                                 .onItem()
                                                 .transformToUni(canUpdate -> userProfilesRepository.deleteUserProfiles(userProfilesToDelete.stream().map(UserProfiles::getUserProfilesPK).toList())
@@ -181,10 +181,10 @@ public class UserProfilesServiceImpl implements UserProfilesService {
                                                         .transformToUni(persistedRows -> userProfilesRepository.findByUserId(userProfilesInsertionDTO.getUserId())));
                                     }
                                     return userProfilesRepository.deleteUserProfiles(userProfilesToDelete.stream().map(UserProfiles::getUserProfilesPK).toList())
-                                                    .onItem()
-                                                    .transformToUni(deletedRows -> userProfilesRepository.persist(userProfilesToAdd))
-                                                    .onItem()
-                                                    .transformToUni(persistedRows -> userProfilesRepository.findByUserId(userProfilesInsertionDTO.getUserId()));
+                                            .onItem()
+                                            .transformToUni(deletedRows -> userProfilesRepository.persist(userProfilesToAdd))
+                                            .onItem()
+                                            .transformToUni(persistedRows -> userProfilesRepository.findByUserId(userProfilesInsertionDTO.getUserId()));
                                 })
                         )
                 );

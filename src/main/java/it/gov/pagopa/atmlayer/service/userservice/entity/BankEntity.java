@@ -21,12 +21,12 @@ import java.sql.Timestamp;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "banks")
+@Table(name = "bank")
 @Where(clause = "enabled = true")
 public class BankEntity extends PanacheEntityBase implements Serializable {
 
     @Id
-    @Column(name = "acquirer_id")
+    @Column(name = "acquirer_id", nullable= false, updatable = false)
     private String acquirerId;
 
     @Column(name = "denomination")

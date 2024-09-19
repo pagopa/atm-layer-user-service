@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
                 .onItem()
                 .transformToUni(Unchecked.function(x -> {
                     if (x != null) {
-                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.USER_WITH_SAME_ID_ALREADY_EXIST);
+                        throw new AtmLayerException("Esiste già un utente associato all'indirizzo email indicato", Response.Status.BAD_REQUEST, AppErrorCodeEnum.USER_WITH_SAME_ID_ALREADY_EXIST);
                     }
                     return userRepository.persist(user);
                 }));
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
                 .onItem()
                 .transformToUni(Unchecked.function(x -> {
                     if (x != null) {
-                        throw new AtmLayerException(Response.Status.BAD_REQUEST, AppErrorCodeEnum.USER_WITH_SAME_ID_ALREADY_EXIST);
+                        throw new AtmLayerException("Esiste già un utente associato all'indirizzo email indicato", Response.Status.BAD_REQUEST, AppErrorCodeEnum.USER_WITH_SAME_ID_ALREADY_EXIST);
                     }
                     return userRepository.persist(user);
                 }));
@@ -77,8 +77,8 @@ public class UserServiceImpl implements UserService {
         return this.getById(userId)
                 .onItem()
                 .transformToUni(Unchecked.function(userFound -> {
-                        userFound.setName(name);
-                        userFound.setSurname(surname);
+                    userFound.setName(name);
+                    userFound.setSurname(surname);
                     return userRepository.persist(userFound);
                 }));
     }
@@ -108,11 +108,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Uni<PageInfo<User>> getUserFiltered(int pageIndex, int pageSize, String name, String surname, String userId) {
+    public Uni<PageInfo<User>> getUserFiltered(int pageIndex, int pageSize, String name, String surname, String userId, int profileId) {
         Map<String, Object> filters = new HashMap<>();
         filters.put("name", name);
         filters.put("surname", surname);
         filters.put("userId", userId);
+        filters.put("profileId", profileId != 0 ? profileId : null);
         filters.remove(null);
         filters.values().removeAll(Collections.singleton(null));
         filters.values().removeAll(Collections.singleton(""));
@@ -143,20 +144,21 @@ public class UserServiceImpl implements UserService {
 
         return countUsers()
                 .onItem()
-                .transformToUni(count -> {
+                .transformToUni(Unchecked.function(count -> {
                     if (count == 0) {
-                        UserInsertionWithProfilesDTO userInsertionWithProfilesDTO = new UserInsertionWithProfilesDTO();
-                        List<Integer> profile = new ArrayList<>();
-                        profile.add(5);
-                        userInsertionWithProfilesDTO.setUserId(userId);
-                        userInsertionWithProfilesDTO.setProfileIds(profile);
-                        userInsertionWithProfilesDTO.setName("");
-                        userInsertionWithProfilesDTO.setSurname("");
-                        return insertUserWithProfiles(userInsertionWithProfilesDTO)
-                                .onItem()
-                                .transformToUni(list -> Uni.createFrom().voidItem());
-                        }
-                        return Uni.createFrom().voidItem();
-                });
+//                        UserInsertionWithProfilesDTO userInsertionWithProfilesDTO = new UserInsertionWithProfilesDTO();
+//                        List<Integer> profile = new ArrayList<>();
+//                        profile.add(5);
+//                        userInsertionWithProfilesDTO.setUserId(userId);
+//                        userInsertionWithProfilesDTO.setProfileIds(profile);
+//                        userInsertionWithProfilesDTO.setName("");
+//                        userInsertionWithProfilesDTO.setSurname("");
+//                        return insertUserWithProfiles(userInsertionWithProfilesDTO)
+//                                .onItem()
+//                                .transformToUni(list -> Uni.createFrom().voidItem());
+                        throw new AtmLayerException(Response.Status.NOT_FOUND, AppErrorCodeEnum.NO_USER_IN_DATABASE);
+                    }
+                    return Uni.createFrom().voidItem();
+                }));
     }
 }

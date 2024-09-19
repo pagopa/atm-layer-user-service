@@ -10,6 +10,7 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.User;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.List;
 import java.util.Map;
 
 @ApplicationScoped
@@ -23,26 +24,57 @@ public class UserRepository implements PanacheRepositoryBase<User, String> {
         return find("select u from User u left join fetch u.userProfiles");
     }
 
+//    public Uni<PageInfo<User>> findByFilters(Map<String, Object> params, int pageIndex, int pageSize) {
+//        StringBuilder query = new StringBuilder("select distinct u from User u left join fetch u.userProfiles up where 1=1 ");
+//
+//        params.forEach((key, value) -> query.append("and lower(u.").append(key).append(")").append(" LIKE lower(concat(concat(:" + key + "), '%'))"));
+//
+//        query.append("order by u.lastUpdatedAt DESC");
+//
+//        PanacheQuery<User> countQuery = find("select distinct u from User u where 1=1 " +
+//                        params.keySet().stream().map(key -> "and u." + key + " = :" + key + " ").reduce("", String::concat),
+//                params);
+//
+//        PanacheQuery<User> fetchQuery = find(query.toString(), params).page(Page.of(pageIndex, pageSize));
+//
+//        return countQuery.count()
+//                .onItem().transformToUni(count -> {
+//                    int totalCount = count.intValue();
+//                    int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+//                    return fetchQuery.list()
+//                            .onItem().transform(list -> new PageInfo<>(pageIndex, pageSize, totalCount, totalPages, list));
+//                });
+//    }
+
     public Uni<PageInfo<User>> findByFilters(Map<String, Object> params, int pageIndex, int pageSize) {
-        StringBuilder query = new StringBuilder("select distinct u from User u left join fetch u.userProfiles up where 1=1 ");
+        StringBuilder dataQuery = new StringBuilder("select distinct u from User u left join fetch u.userProfiles up where 1=1 ");
 
-        params.forEach((key, value) -> query.append("and lower(u.").append(key).append(")").append(" LIKE lower(concat(concat(:" + key + "), '%'))"));
+        params.forEach((key, value) -> {
+            if (key.equalsIgnoreCase("name") || key.equalsIgnoreCase("surname") || key.equalsIgnoreCase("userId")) {
+                dataQuery.append("and lower(u.").append(key).append(") LIKE lower(concat(:").append(key).append(", '%')) ");
+            }
+        });
 
-        query.append("order by u.lastUpdatedAt DESC");
+        if (params.containsKey("profileId")) {
+            dataQuery.append("and exists (select 1 from UserProfiles up2 where up2.user = u and up2.profile.profileId = :profileId) ");
+        }
 
-        PanacheQuery<User> countQuery = find("select distinct u from User u where 1=1 " +
-                        params.keySet().stream().map(key -> "and u." + key + " = :" + key + " ").reduce("", String::concat),
-                params);
+        dataQuery.append("order by u.lastUpdatedAt DESC");
 
-        PanacheQuery<User> fetchQuery = find(query.toString(), params).page(Page.of(pageIndex, pageSize));
+        Uni<List<User>> allUsersUni = find(dataQuery.toString(), params).list();
 
-        return countQuery.count()
-                .onItem().transformToUni(count -> {
-                    int totalCount = count.intValue();
-                    int totalPages = (int) Math.ceil((double) totalCount / pageSize);
-                    return fetchQuery.list()
-                            .onItem().transform(list -> new PageInfo<>(pageIndex, pageSize, totalCount, totalPages, list));
-                });
+        return allUsersUni.onItem().transformToUni(allUsers -> {
+            int totalCount = allUsers.size();
+            int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+
+            List<User> paginatedUsers = allUsers.stream()
+                    .skip(pageIndex * pageSize)
+                    .limit(pageSize)
+                    .toList();
+
+            return Uni.createFrom().item(new PageInfo<>(pageIndex, pageSize, totalCount, totalPages, paginatedUsers));
+        });
     }
+
 
 }

@@ -23,12 +23,22 @@ secretProviderClass:
 
 milBasePath: https://mil-u-apim.azure-api.net
 
+database:
+  type: postgresql
+  url: postgresql://pagopa-dev-atm-layer-rds.cluster-cyezwzpjc2tj.eu-south-1.rds.amazonaws.com:5431/pagopadb?search_path=atm_layer_model_schema
+  db_name: pagopadb
+  credentialsSecretEnabled: true
+  credentialsSecretName: "pagopa-dev-atm-layer-model-database"
+  credentialsSecretKeys:
+    username: USERNAME_DB
+    password: PASSWORD_DB
+
 tracing:
   enabled: "true"
   endpointBasePath: "http://jaeger-collector.default.svc.cluster.local:4317"
   enableJDBCMonitoring: "true"
 
-milAuthenticator:
+userService:
   environment: dev
   executionMode: READ_WRITE
   logLevel: INFO
@@ -47,13 +57,8 @@ milAuth:
 
 apiGatewayId: 8o3pf45im8
 cognitoUserPoolId: eu-south-1_sEZF9PqAf
+cognitoScopes: dev/tasks
 
-redis:
-  credentialsSecretEnabled: true
-  credentialsSecretName: pagopa-dev-atm-layer-user-service-redis
-  credentialsSecretKeys:
-    host: host
-    port: port
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -82,7 +87,7 @@ deployment:
   name: pagopa-dev-atm-layer-user-service
   annotations:
     reloader.stakater.com/auto: "true"
-    secret.reloader.stakater.com/reload: pagopa-dev-atm-layer-user-service-redis, pagopa-dev-atm-layer-user-service-mil-auth
+    secret.reloader.stakater.com/reload: pagopa-dev-atm-layer-user-service-mil-auth
 
 service:
   name: pagopa-dev-atm-layer-user-service

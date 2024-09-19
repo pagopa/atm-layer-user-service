@@ -10,8 +10,10 @@ import it.gov.pagopa.atmlayer.service.userservice.dto.UserProfilesInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.User;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfiles;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
+import it.gov.pagopa.atmlayer.service.userservice.enums.AppErrorCodeEnum;
 import it.gov.pagopa.atmlayer.service.userservice.exception.AtmLayerException;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.UserMapper;
+import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 import it.gov.pagopa.atmlayer.service.userservice.repository.UserRepository;
 import it.gov.pagopa.atmlayer.service.userservice.service.UserProfilesService;
 import it.gov.pagopa.atmlayer.service.userservice.service.impl.UserServiceImpl;
@@ -26,6 +28,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -80,6 +84,43 @@ class UserServiceImplTest {
     }
 
     @Test
+    void testGetUserFiltered() {
+        List<User> usersList = new ArrayList<>();
+        User user = new User();
+        usersList.add(user);
+        int pageIndex = 0;
+        int pageSize = 10;
+        String name = "John";
+        String surname = "Doe";
+        String userId = "123";
+        int profileId = 1;
+
+        PageInfo<User> expectedResult = new PageInfo<>(0, 10, 1, 1, usersList);
+
+        when(userRepository.findByFilters(anyMap(), eq(pageIndex), eq(pageSize))).thenReturn(Uni.createFrom().item(expectedResult));
+
+        Uni<PageInfo<User>> result = userServiceImpl.getUserFiltered(pageIndex, pageSize, name, surname, userId, profileId);
+
+        result.subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted()
+                .assertItem(expectedResult);
+    }
+
+    @Test
+    void testGetUserFilteredWithNullOrEmptyFilters() {
+        int pageIndex = 0;
+        int pageSize = 10;
+        String name = "John";
+        String surname = "Doe";
+        String userId = "123";
+        int profileId = 1;
+
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, name, surname, null, profileId).await().indefinitely());
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, null, surname, userId, profileId).await().indefinitely());
+        assertDoesNotThrow(() -> userServiceImpl.getUserFiltered(pageIndex, pageSize, null, null, null, profileId).await().indefinitely());
+    }
+
+    @Test
     void testInsertUserOK() {
         User user = new User();
         user.setUserId("prova@test.com");
@@ -124,7 +165,7 @@ class UserServiceImplTest {
                 .getItem();
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(user, result);
+        assertEquals(user, result);
 
         verify(userMapper, times(1)).toEntityInsertionWithProfiles(any(UserInsertionWithProfilesDTO.class));
         verify(userRepository, times(1)).findById(user.getUserId());
@@ -139,7 +180,7 @@ class UserServiceImplTest {
 
         userServiceImpl.insertUserWithProfiles(userInsertionWithProfilesDTO)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailedWith(AtmLayerException.class, "Un utente con lo stesso id esiste già");
+                .assertFailedWith(AtmLayerException.class, "Esiste già un utente associato all'indirizzo email indicato");
     }
 
     @Test
@@ -161,7 +202,7 @@ class UserServiceImplTest {
         userServiceImpl.insertUser(userInsertionDTO)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertFailed()
-                .assertFailedWith(AtmLayerException.class, "Un utente con lo stesso id esiste già");
+                .assertFailedWith(AtmLayerException.class, "Esiste già un utente associato all'indirizzo email indicato");
 
         verify(userRepository, never()).persist(any(User.class));
     }
@@ -208,6 +249,20 @@ class UserServiceImplTest {
                 .assertCompleted()
                 .assertItem(user);
 
+    }
+
+    @Test
+    void testUpdateWithProfilesFailOnUserProfilesUpdate() {
+        when(userProfilesService.updateUserProfiles(any())).thenReturn(Uni.createFrom().failure(new RuntimeException("Error")));
+        when(userMapper.toEntityInsertionWithProfiles(any(UserInsertionWithProfilesDTO.class))).thenReturn(user);
+
+        Uni<User> result = userServiceImpl.updateWithProfiles(userInsertionWithProfilesDTO);
+
+        result.subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(RuntimeException.class, "Error");
+
+        verify(userProfilesService).updateUserProfiles(any());
+        verify(userRepository, never()).persist(any(User.class));
     }
 
     @Test
@@ -274,32 +329,20 @@ class UserServiceImplTest {
 
     @Test
     void testCheckFirstAccessWhenNoUsers() {
+
         long userCount = 0;
 
-        User mockedUser = new User();
-        mockedUser.setUserId("test@test.com");
-
-        UserInsertionWithProfilesDTO userInsertionWithProfilesDTO = new UserInsertionWithProfilesDTO();
-        userInsertionWithProfilesDTO.setUserId("test@test.com");
-        List<Integer> profileIds = new ArrayList<>();
-        profileIds.add(5);
-        userInsertionWithProfilesDTO.setProfileIds(profileIds);
-
         when(userRepository.count()).thenReturn(Uni.createFrom().item(userCount));
-        when(userMapper.toEntityInsertionWithProfiles(any(UserInsertionWithProfilesDTO.class))).thenReturn(mockedUser);
-        when(userRepository.findById(anyString())).thenReturn(Uni.createFrom().nullItem());
-        when(userRepository.persist(any(User.class))).thenReturn(Uni.createFrom().item(mockedUser));
 
-        userServiceImpl.checkFirstAccess(mockedUser.getUserId())
-                .subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertCompleted()
-                .assertItem(null);
+        UniAssertSubscriber<Void> subscriber = userServiceImpl.checkFirstAccess("test@test.com")
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(AtmLayerException.class);
 
         verify(userRepository, times(1)).count();
-        verify(userMapper, times(1)).toEntityInsertionWithProfiles(any(UserInsertionWithProfilesDTO.class));
-        verify(userRepository, times(1)).findById(anyString());
-        verify(userRepository, times(1)).persist(any(User.class));
     }
+
+
 
 
     @Test
