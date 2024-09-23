@@ -26,6 +26,8 @@ public class CognitoServiceImpl implements CognitoService {
     @ConfigProperty(name = "cognito.scopes")
     String scopes;
 
+    private static final String CLIENT_LOG_VALUE = "Client value: {}";
+
     @Override
     public Uni<ClientCredentialsDTO> getClientCredentials(String clientId) {
         return Uni.createFrom().item(() -> {
@@ -37,7 +39,7 @@ public class CognitoServiceImpl implements CognitoService {
             try {
                 DescribeUserPoolClientResponse response = cognitoClientConf.getCognitoClient().describeUserPoolClient(request);
                 client = response.userPoolClient();
-                log.info("Client value: {}", client);
+                log.info(CLIENT_LOG_VALUE, client);
             } catch (Exception e) {
                 log.error("ERROR with getClientCredentials: {}", e.getMessage());
                 throw new AtmLayerException(("La richiesta di GetClientCredentials su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
@@ -69,7 +71,7 @@ public class CognitoServiceImpl implements CognitoService {
             try {
                 CreateUserPoolClientResponse response = cognitoClientConf.getCognitoClient().createUserPoolClient(request);
                 client = response.userPoolClient();
-                log.info("Client value: {}", client);
+                log.info(CLIENT_LOG_VALUE, client);
             } catch (Exception e) {
                 log.error("La richiesta di CreateUserPoolClient su AWS non è andata a buon fine: {}", e.getMessage());
                 throw new AtmLayerException(("La richiesta di CreateUserPoolClient su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);
@@ -96,7 +98,7 @@ public class CognitoServiceImpl implements CognitoService {
         try {
             UpdateUserPoolClientResponse response = cognitoClientConf.getCognitoClient().updateUserPoolClient(request);
             client = response.userPoolClient();
-            log.info("Client value: {}", client);
+            log.info(CLIENT_LOG_VALUE, client);
         } catch (Exception e) {
             log.error("La richiesta di UpdateUserPoolClient su AWS non è andata a buon fine: {}", e.getMessage());
             throw new AtmLayerException(("La richiesta di UpdateUserPoolClient su AWS non è andata a buon fine"), Response.Status.INTERNAL_SERVER_ERROR, AppErrorCodeEnum.AWS_OPERATION_ERROR);

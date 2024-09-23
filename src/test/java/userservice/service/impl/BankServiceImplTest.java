@@ -365,7 +365,12 @@ class BankServiceImplTest {
 
         resultUni.subscribe().with(
                 result -> {
-                    // If we reach here, the test is successful
+                    verify(apiKeyService).deleteUsagePlan("test-usage-plan-id");
+                    verify(apiKeyService).deleteApiKey("test-api-key-id");
+                    verify(cognitoService).deleteClient("test-client-id");
+                    verify(bankRepository).persist(bankEntity);
+
+                    assertTrue(true, "Il metodo disable è stato eseguito correttamente");
                 },
                 failure -> {
                     throw new AssertionError("Test failed with exception: " + failure.getMessage());

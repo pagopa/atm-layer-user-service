@@ -67,35 +67,4 @@ public class UserProfilesResource {
                 .transform(updatedUserProfiles -> userProfilesMapper.toDtoList(updatedUserProfiles));
     }
 
-//    @GET
-//    @Path("/userId/{userId}/profileId/{profileId}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    @Operation(operationId = "getUserProfile", summary = "Restituisce lo user e il profilo associato", description = "Restituisce lo user e il profilo associato")
-//    @APIResponse(responseCode = "200", description = "Operazione eseguita con successo. Il processo è terminato.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserProfilesDTO.class)))
-//    @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
-//    @APIResponse(responseCode = "404", description = "associazione non trovata sul database con i valori di input inseriti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-//    @APIResponse(responseCode = "500", description = "Errore interno.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-//    public Uni<UserProfilesDTO> getById(@PathParam("userId") @Schema(format = "byte", maxLength = 255) String userId,
-//                                        @PathParam("profileId") @Schema(minimum = "1", maximum = "30") int profileId) {
-//        return this.userProfilesService.getById(userId, profileId)
-//                .onItem()
-//                .transform(user -> userProfilesMapper.toDTO(user));
-//    }
-
-//    @DELETE
-//    @Path("/userId/{userId}/profileId/{profileId}")
-//    @Operation(operationId = "deleteUserProfile", summary = "Cancella lo userProfile dal database", description = "Cancella lo userProfile dal database")
-//    @APIResponse(responseCode = "204", description = "Operazione eseguita con successo. Il processo è terminato.")
-//    @APIResponse(responseCode = "400", description = "Uno o più valori di input non valorizzati correttamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ValidationErrorResponse.class)))
-//    @APIResponse(responseCode = "404", description = "associazione non trovata sul database con i valori di input inseriti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-//    @APIResponse(responseCode = "500", description = "Errore interno.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-//    public Uni<Void> deleteUserProfiles(
-//            @PathParam("userId") @Schema(format = "byte", maxLength = 255) String userId,
-//            @PathParam("profileId") @Schema(minimum = "1", maximum = "30") int profileId
-//    ) {
-//        UserProfilesPK userProfilesPK = new UserProfilesPK(userId, profileId);
-//        return this.userProfilesService.deleteUserProfiles(userProfilesPK);
-//    }
-
-
 }

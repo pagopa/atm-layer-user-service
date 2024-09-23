@@ -7,6 +7,7 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfiles;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.UserProfilesMapper;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -33,7 +34,13 @@ class UserProfilesMapperTest {
         List<Integer> idsList = new ArrayList<>();
         idsList.add(1);
         userProfilesInsertionDTO.setProfileIds(idsList);
-        mapper.toEntityInsertion(userProfilesInsertionDTO);
+
+        List<UserProfiles> result = mapper.toEntityInsertion(userProfilesInsertionDTO);
+
+        Assertions.assertNotNull(result, "Il risultato non dovrebbe essere null");
+        Assertions.assertFalse(result.isEmpty(), "La lista dei profili non dovrebbe essere vuota");
+        Assertions.assertEquals(1, result.size(), "La dimensione della lista dovrebbe essere 1");
+        Assertions.assertEquals(1, result.get(0).getUserProfilesPK().getProfileId(), "Il ProfileId dovrebbe essere 1");
     }
 
     @Test
