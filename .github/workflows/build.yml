@@ -87,8 +87,8 @@ jobs:
           script: |
             core.setFailed('Overall coverage is less than 90%!')
 
-#      - name: Code Review
-#        run: |
-#          mvn sonar:sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }} -Dsonar.projectKey=pagopa_atm-layer-user-service \
-#          -Dsonar.organization=pagopa -Dsonar.java.binaries=src/main -Pcoverage \
-#          -Dsonar.coverage.jacoco.xmlReportPaths=../atm-layer-transaction-service/target/jacoco-report/jacoco.xml
+      - name: Code Review
+        run: |
+          mvn sonar:sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }} -Dsonar.projectKey=pagopa_atm-layer-user-service \
+          -Dsonar.organization=pagopa -Dsonar.java.binaries=src/main -Pcoverage \
+          -Dsonar.coverage.jacoco.xmlReportPaths=../atm-layer-user-service/target/jacoco-report/jacoco.xml
