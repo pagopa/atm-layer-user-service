@@ -1,5 +1,6 @@
 package it.gov.pagopa.atmlayer.service.userservice.entity;
 
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -20,7 +21,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "profile")
-public class Profile implements Serializable {
+public class Profile extends PanacheEntityBase implements Serializable {
 
     @Id
     @Column(name = "profile_id")
