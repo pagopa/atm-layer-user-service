@@ -70,14 +70,6 @@ public class GlobalExceptionMapperImpl {
                 .build());
     }
 
-    private RestResponse<ErrorResponse> buildErrorResponse(String message) {
-        return RestResponse.status(Response.Status.INTERNAL_SERVER_ERROR, ErrorResponse.builder()
-                .type(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
-                .message(message)
-                .build());
-    }
-
     private RestResponse<ValidationErrorResponse> buildErrorResponse(Set<ConstraintViolation<?>> errors, String message) {
         List<String> errorMessages = constraintViolationMappingUtils.extractErrorMessages(errors);
         ValidationErrorResponse payload = ValidationErrorResponse.builder()

@@ -1,6 +1,5 @@
 package it.gov.pagopa.atmlayer.service.userservice.dto;
 
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

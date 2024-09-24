@@ -3,7 +3,6 @@ package it.gov.pagopa.atmlayer.service.userservice.repository;
 import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase;
 import io.quarkus.panache.common.Parameters;
 import io.smallrye.mutiny.Uni;
-
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfiles;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,7 +17,7 @@ public class UserProfilesRepository implements PanacheRepositoryBase<UserProfile
                 Parameters.with("pKList", pKList));
     }
 
-    public Uni<List<UserProfiles>> findByUserId (String userId) {
+    public Uni<List<UserProfiles>> findByUserId(String userId) {
         return find("select a from UserProfiles a where a.userProfilesPK.userId = :userId",
                 Parameters.with("userId", userId)).list();
     }

@@ -5,7 +5,6 @@ import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.ApiKeyDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanDTO;
 import it.gov.pagopa.atmlayer.service.userservice.model.UsagePlanUpdateDTO;
-import software.amazon.awssdk.services.apigateway.model.QuotaPeriodType;
 
 public interface ApiKeyService {
 
