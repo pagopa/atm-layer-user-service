@@ -186,6 +186,28 @@ class UserProfilesServiceImplTest {
     }
 
     @Test
+    void testInsertUserProfiles_alreadyExistsException() {
+        List<UserProfiles> userProfilesList = new ArrayList<>();
+        userProfilesList.add(userProfiles);
+        when(userProfilesMapper.toEntityInsertion(any(UserProfilesInsertionDTO.class))).thenReturn(userProfilesList);
+        when(userProfilesService.isUserProfileExisting(userProfiles)).thenReturn(Uni.createFrom().item(true));
+        when(userProfilesRepository.findById(userProfiles.getUserProfilesPK())).thenReturn(Uni.createFrom().nullItem());
+        when(userProfilesRepository.persist(any(UserProfiles.class))).thenReturn(Uni.createFrom().item(userProfiles));
+        when(profileRepository.findById(userProfiles.getUserProfilesPK().getProfileId())).thenReturn(Uni.createFrom().item(new Profile()));
+        when(userRepository.findById(userProfiles.getUserProfilesPK().getUserId())).thenReturn(Uni.createFrom().item(new User()));
+
+        userProfilesService.insertSingleUserProfile(userProfiles)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted()
+                .assertItem(userProfiles);
+        Uni<List<UserProfiles>> result = userProfilesService.insertUserProfiles(userProfilesInsertionDTO);
+        result.subscribe()
+                .withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted()
+                .assertItem(userProfilesList);
+    }
+
+    @Test
     void testFindByIdOk() {
         when(userProfilesRepository.findById(any(UserProfilesPK.class))).thenReturn(Uni.createFrom().item(userProfiles));
 

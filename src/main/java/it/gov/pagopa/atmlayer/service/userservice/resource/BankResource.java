@@ -7,25 +7,23 @@ import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankUpdateDTO;
 import it.gov.pagopa.atmlayer.service.userservice.mapper.BankMapper;
-import it.gov.pagopa.atmlayer.service.userservice.model.*;
+import it.gov.pagopa.atmlayer.service.userservice.model.ErrorResponse;
+import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
+import it.gov.pagopa.atmlayer.service.userservice.model.ValidationErrorResponse;
 import it.gov.pagopa.atmlayer.service.userservice.service.BankService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
-import java.util.List;
 
 @ApplicationScoped
 @Path("/banks")
@@ -87,7 +85,7 @@ public class BankResource {
                                          @QueryParam("pageSize") @DefaultValue("10") @Parameter(required = true, schema = @Schema(minimum = "1", maximum = "100")) int pageSize,
                                          @QueryParam("acquirerId") @Schema(format = "byte", maxLength = 255) String acquirerId,
                                          @QueryParam("denomination") @Schema(format = "byte", maxLength = 255) String denomination,
-                                         @QueryParam("clientId")@Schema(format = "byte", maxLength = 255) String clientId) {
+                                         @QueryParam("clientId") @Schema(format = "byte", maxLength = 255) String clientId) {
         return this.bankService.searchBanks(pageIndex, pageSize, acquirerId, denomination, clientId)
                 .onItem()
                 .transform(Unchecked.function(pagedList -> {

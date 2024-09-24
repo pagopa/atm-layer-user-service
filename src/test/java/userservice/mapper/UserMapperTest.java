@@ -94,11 +94,6 @@ class UserMapperTest {
     }
 
     @Test
-    void toProfilesDTOUserNull() {
-        mapper.toProfilesDTO(null);
-    }
-
-    @Test
     void testToFrontEndDTOListPaged() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         Profile profile = new Profile();

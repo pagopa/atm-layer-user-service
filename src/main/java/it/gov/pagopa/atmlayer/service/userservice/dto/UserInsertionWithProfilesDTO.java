@@ -30,5 +30,5 @@ public class UserInsertionWithProfilesDTO {
     @NotNull
     @Size(min = 1)
     @Schema(type = SchemaType.ARRAY, maxItems = 30)
-    private List<@Range(min=1) Integer> profileIds;
+    private List<@Range(min = 1) Integer> profileIds;
 }

@@ -207,6 +207,45 @@ class BankServiceImplTest {
     }
 
     @Test
+    void testInsertBank_persistException(){
+        BankInsertionDTO bankInsertionDTO = new BankInsertionDTO();
+        BankEntity bankEntity = new BankEntity();
+        ClientCredentialsDTO clientCredentialsDTO;
+        ApiKeyDTO apiKeyDTO = new ApiKeyDTO("api-key-id", "api-key-value", "Test API Key");
+        UsagePlanDTO usagePlanDTO = new UsagePlanDTO();
+
+        bankInsertionDTO.setAcquirerId("123");
+        bankInsertionDTO.setDenomination("Test Denomination");
+
+        bankEntity.setAcquirerId("123");
+        bankEntity.setDenomination("Test Denomination");
+
+        clientCredentialsDTO = new ClientCredentialsDTO();
+        clientCredentialsDTO.setClientId("client-id");
+        clientCredentialsDTO.setClientSecret("client-secret");
+        clientCredentialsDTO.setClientName("Test Client");
+
+        usagePlanDTO.setId("usage-plan-id");
+
+        when(bankRepository.findAllById(any(String.class)))
+                .thenReturn(Uni.createFrom().item(Collections.emptyList()));
+        when(cognitoService.generateClient(any(String.class)))
+                .thenReturn(Uni.createFrom().item(clientCredentialsDTO));
+        when(apiKeyService.createApiKey(any(String.class), any(String.class)))
+                .thenReturn(Uni.createFrom().item(apiKeyDTO));
+        when(apiKeyService.createUsagePlan(any(BankInsertionDTO.class), any(String.class)))
+                .thenReturn(Uni.createFrom().item(usagePlanDTO));
+        when(bankMapper.toEntityInsertion(any(BankInsertionDTO.class)))
+                .thenReturn(bankEntity);
+        when(bankRepository.persist(any(BankEntity.class)))
+                .thenThrow(new RuntimeException("error during db persist"));
+
+        bankService.insertBank(bankInsertionDTO)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(AtmLayerException.class);
+    }
+
+    @Test
     void testUpdateBankSuccess_differentName() {
         BankUpdateDTO input = new BankUpdateDTO();
         input.setAcquirerId("test-acquirer-id");
@@ -326,7 +365,12 @@ class BankServiceImplTest {
 
         resultUni.subscribe().with(
                 result -> {
-                    // If we reach here, the test is successful
+                    verify(apiKeyService).deleteUsagePlan("test-usage-plan-id");
+                    verify(apiKeyService).deleteApiKey("test-api-key-id");
+                    verify(cognitoService).deleteClient("test-client-id");
+                    verify(bankRepository).persist(bankEntity);
+
+                    assertTrue(true, "Il metodo disable è stato eseguito correttamente");
                 },
                 failure -> {
                     throw new AssertionError("Test failed with exception: " + failure.getMessage());

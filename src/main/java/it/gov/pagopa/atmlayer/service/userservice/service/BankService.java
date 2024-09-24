@@ -1,7 +1,6 @@
 package it.gov.pagopa.atmlayer.service.userservice.service;
 
 import io.smallrye.mutiny.Uni;
-import it.gov.pagopa.atmlayer.service.userservice.dto.BankDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankPresentationDTO;
 import it.gov.pagopa.atmlayer.service.userservice.dto.BankUpdateDTO;
@@ -9,7 +8,6 @@ import it.gov.pagopa.atmlayer.service.userservice.entity.BankEntity;
 import it.gov.pagopa.atmlayer.service.userservice.model.PageInfo;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface BankService {
 

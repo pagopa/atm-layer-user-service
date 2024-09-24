@@ -26,7 +26,7 @@ import java.sql.Timestamp;
 public class BankEntity extends PanacheEntityBase implements Serializable {
 
     @Id
-    @Column(name = "acquirer_id", nullable= false, updatable = false)
+    @Column(name = "acquirer_id", nullable = false, updatable = false)
     private String acquirerId;
 
     @Column(name = "denomination")

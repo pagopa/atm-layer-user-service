@@ -8,9 +8,6 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
-/**
- * Model class for the error response
- */
 @Getter
 @SuperBuilder
 @Jacksonized
@@ -18,7 +15,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
 public class ErrorResponse {
 
-    @Size(max=255)
+    @Size(max = 255)
     private String type;
 
     @Schema(example = "500", minimum = "1", maximum = "999")

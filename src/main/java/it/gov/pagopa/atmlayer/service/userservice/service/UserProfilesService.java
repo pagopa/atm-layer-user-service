@@ -5,7 +5,6 @@ import it.gov.pagopa.atmlayer.service.userservice.dto.UserProfilesInsertionDTO;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfiles;
 import it.gov.pagopa.atmlayer.service.userservice.entity.UserProfilesPK;
 
-
 import java.util.List;
 
 public interface UserProfilesService {
