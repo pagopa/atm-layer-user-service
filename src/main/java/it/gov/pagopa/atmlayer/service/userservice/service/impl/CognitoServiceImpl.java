@@ -95,6 +95,7 @@ public class CognitoServiceImpl implements CognitoService {
                 .supportedIdentityProviders("COGNITO")
                 .allowedOAuthFlows(OAuthFlowType.CLIENT_CREDENTIALS)
                 .allowedOAuthScopes(scopes)
+                .clientId(clientId)
                 .clientName(clientName)
                 .build();
         UserPoolClientType client = null;
