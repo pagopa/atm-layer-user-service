@@ -91,7 +91,10 @@ public class CognitoServiceImpl implements CognitoService {
     public Uni<ClientCredentialsDTO> updateClientName(String clientId, String clientName) {
         UpdateUserPoolClientRequest request = UpdateUserPoolClientRequest.builder()
                 .userPoolId(userPoolId)
-                .clientId(clientId)
+                .allowedOAuthFlowsUserPoolClient(true)
+                .supportedIdentityProviders("COGNITO")
+                .allowedOAuthFlows(OAuthFlowType.CLIENT_CREDENTIALS)
+                .allowedOAuthScopes(scopes)
                 .clientName(clientName)
                 .build();
         UserPoolClientType client = null;
